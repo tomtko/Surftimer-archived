@@ -390,6 +390,7 @@ ConVar g_hMaxVelocity;
 float g_fAnnounceRecord;
 bool g_bGravityFix;
 ConVar g_hGravityFix;
+bool g_bzGrpIgnoreOverLap;
 
 /*----------  Style variables
 0 = normal, 1 = SW, 2 = HSW, 3 = BW, 4 = Low-Gravity, 5 = Slow Motion, 6 = Fast Forward
