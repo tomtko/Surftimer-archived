@@ -37,6 +37,11 @@ public void MapSettingsMenu(int client)
     AddMenuItem(menu, "", "Unlimit prespeed for all stage zones");
   else
     AddMenuItem(menu, "", "Unlimit prespeed for all stage zones", ITEMDRAW_DISABLED);
+	
+  if (g_bzGrpIgnoreOverLap)
+    AddMenuItem(menu, "", "don't allow bonus zones to sit on top of start zones");
+  else
+    AddMenuItem(menu, "", "Allow bonus zones to sit on top of start zones");
   
   SetMenuOptionFlags(menu, MENUFLAG_BUTTON_EXIT);
   DisplayMenu(menu, client, MENU_TIME_FOREVER);
@@ -72,6 +77,12 @@ public int MapSettingsMenuHandler(Handle menu, MenuAction action, int param1, in
       {
         db_unlimitAllStages(g_szMapName);
       }
+	  case 4:
+	  {
+		g_bzGrpIgnoreOverLap = !g_bzGrpIgnoreOverLap;
+		db_updateMapSettings();
+		MapSettingsMenu(param1);
+	  }
     }
   }
   else if (action == MenuAction_End)
@@ -204,7 +215,7 @@ public Action Command_SetGravityFix(int client, int args)
 public void db_viewMapSettings()
 {
   char szQuery[2048];
-  Format(szQuery, 2048, "SELECT `mapname`, `maxvelocity`, `announcerecord`, `gravityfix` FROM `ck_maptier` WHERE `mapname` = '%s'", g_szMapName);
+  Format(szQuery, 2048, "SELECT `mapname`, `maxvelocity`, `announcerecord`, `gravityfix`, `overlap` FROM `ck_maptier` WHERE `mapname` = '%s'", g_szMapName);
   SQL_TQuery(g_hDb, sql_viewMapSettingsCallback, szQuery, DBPrio_Low);
 }
 
@@ -222,6 +233,7 @@ public void sql_viewMapSettingsCallback(Handle owner, Handle hndl, const char[] 
       g_fMaxVelocity = SQL_FetchFloat(hndl, 1);
       g_fAnnounceRecord = SQL_FetchFloat(hndl, 2);
       g_bGravityFix = view_as<bool>(SQL_FetchInt(hndl, 3));
+      g_bzGrpIgnoreOverLap = view_as<bool>(SQL_FetchInt(hndl, 4));
     }
     setMapSettings();
   }
@@ -240,7 +252,7 @@ public void sql_insertMapSettingsCallback(Handle owner, Handle hndl, const char[
 public void db_updateMapSettings()
 {
   char szQuery[512];
-  Format(szQuery, 512, "UPDATE `ck_maptier` SET `maxvelocity` = '%f', `announcerecord` = '%f', `gravityfix` = %i WHERE `mapname` = '%s';", g_fMaxVelocity, g_fAnnounceRecord, view_as<int>(g_bGravityFix), g_szMapName);
+  Format(szQuery, 512, "UPDATE `ck_maptier` SET `maxvelocity` = '%f', `announcerecord` = '%f', `gravityfix` = %i, `overlap` = %i WHERE `mapname` = '%s';", g_fMaxVelocity, g_fAnnounceRecord, view_as<int>(g_bGravityFix), view_as<int>(g_bzGrpIgnoreOverLap), g_szMapName);
   SQL_TQuery(g_hDb, sql_insertMapSettingsCallback, szQuery, DBPrio_Low);
 }
 
