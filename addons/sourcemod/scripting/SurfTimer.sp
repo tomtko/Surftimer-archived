@@ -2731,7 +2731,7 @@ public void OnPluginStart()
 
 	if (g_bLateLoaded)
 	{
-		CreateTimer(3.0, LoadPlayerSettings, INVALID_HANDLE, TIMER_FLAG_NO_MAPCHANGE);
+		CreateTimer(3.0, LoadPlayerSettings, INVALID_HANDLE);
 	}
 
 	Format(szWHITE, 12, "%c", WHITE);
