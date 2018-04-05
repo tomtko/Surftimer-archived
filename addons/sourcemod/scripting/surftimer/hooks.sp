@@ -89,6 +89,10 @@ public Action Event_OnPlayerSpawn(Handle event, const char[] name, bool dontBroa
 		g_bInJump[client] = false;
 		g_bInDuck[client] = false;
 
+		// Set stage to 1 on spawn cause why not
+		g_WrcpStage[client] = 1;
+		g_Stage[0][client] = 1;
+
 		if (g_iCurrentStyle[client] == 4) // 4 low gravity
 			SetEntityGravity(client, 0.5);
 		else if (g_iCurrentStyle[client] == 5)// 5 slowmo
@@ -239,6 +243,10 @@ public Action Event_OnPlayerSpawn(Handle event, const char[] name, bool dontBroa
 
 		// Get Speed & Origin
 		g_fLastSpeed[client] = GetSpeed(client);
+		
+		// Give Player Kevlar + Helment
+		GivePlayerItem( client, "item_assaultsuit");
+		
 	}
 	else if (IsFakeClient(client)) 
 	{
@@ -402,18 +410,18 @@ public Action Say_Hook(int client, const char[] command, int argc)
 			return Plugin_Handled;
 
 		// Maptier
-		if (StrContains(sText, "!map", false) == 0)
-		{
-			if (CheckCommandAccess(client, "sm_map", ADMFLAG_RESERVATION))
-			{
-				char mapname[1024];
-				mapname = sText;
-				ReplaceString(mapname, 1024, "!map ", "", false);
-				db_selectMapName(mapname);
-			}
-			else
-				return Plugin_Handled;
-		}
+		// if (StrContains(sText, "!map", false) == 0)
+		// {
+		// 	if (CheckCommandAccess(client, "sm_map", ADMFLAG_RESERVATION))
+		// 	{
+		// 		char mapname[1024];
+		// 		mapname = sText;
+		// 		ReplaceString(mapname, 1024, "!map ", "", false);
+		// 		db_selectMapName(mapname);
+		// 	}
+		// 	else
+		// 		return Plugin_Handled;
+		// }
 
 		// Empty Message
 		if (StrEqual(sText, " ") || !sText[0])
@@ -472,8 +480,20 @@ public Action Say_Hook(int client, const char[] command, int argc)
 		}
 		else
 		{
-			char szChatRank[1024];
+			char szChatRank[1024], szChatRank2[1024];
 			Format(szChatRank, 1024, "%s", g_pr_chat_coloredrank[client]);
+			Format(szChatRank2, 1024, "%s", g_pr_chat_coloredrank_style[client]);
+			if (g_iCurrentStyle[client] > 0)
+			{
+				char szStyle[128];
+				Format(szStyle, sizeof(szStyle), g_szStyleAcronyms[g_iCurrentStyle[client]]);
+				StringToUpper(szStyle);
+				Format(szStyle, sizeof(szStyle), "%s-", szStyle);
+				ReplaceString(szChatRank2, sizeof(szChatRank2), "{style}", szStyle);
+				Format(szChatRank, sizeof(szChatRank), "%s", szChatRank2);
+			}
+			else
+				ReplaceString(szChatRank, sizeof(szChatRank), "{style}", "");
 
 			if (GetConVarBool(g_hCountry) && (GetConVarBool(g_hPointSystem)))
 			{
@@ -791,18 +811,7 @@ public Action OnLogAction(Handle source, Identity ident, int client, int target,
 public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon, int &subtype, int &cmdnum, int &tickcount, int &seed, int mouse[2])
 {
 	// fluffys
-	if (buttons & IN_JUMP && g_bInJump[client] == true && !g_bInStartZone[client] && !g_bInStageZone[client])
-	{
-		if (!g_bJumpZoneTimer[client])
-		{
-			CreateTimer(1.0, StartJumpZonePrintTimer, client);
-			CPrintToChat(client, "%t", "Hooks10", g_szChatPrefix);
-			TeleportEntity(client, NULL_VECTOR, NULL_VECTOR, view_as<float>( { 0.0, 0.0, 0.0} ));
-			SetEntPropVector(client, Prop_Data, "m_vecVelocity", view_as<float>( { 0.0, 0.0, 0.0 } ));
-			g_bJumpZoneTimer[client] = true;
-		}
-	}
-	else if (buttons & IN_DUCK && g_bInDuck[client] == true)
+	if (buttons & IN_DUCK && g_bInDuck[client] == true)
 	{
 		CPrintToChat(client, "%t", "Hooks11", g_szChatPrefix);
 	}
@@ -1353,6 +1362,20 @@ public Action Event_PlayerJump(Handle event, char[] name, bool dontBroadcast)
 	if (IsValidClient(client) && !IsFakeClient(client))
 	{
 		// Prehop limit in zone
+		if (g_bInJump[client] == true && !g_bInStartZone[client] && !g_bInStageZone[client])
+		{
+			if (!g_bJumpZoneTimer[client])
+			{
+				CreateTimer(1.0, StartJumpZonePrintTimer, client);
+				CPrintToChat(client, "%t", "Hooks10", g_szChatPrefix);
+				Handle pack;
+				CreateDataTimer(0.05, DelayedVelocityCap, pack);
+				WritePackCell(pack, client);
+				WritePackFloat(pack, 0.0);
+				g_bJumpZoneTimer[client] = true;
+			}
+		}
+
 		if (GetConVarBool(g_hOneJumpLimit))
 		{
 			if (g_bInStartZone[client] || g_bInStageZone[client])

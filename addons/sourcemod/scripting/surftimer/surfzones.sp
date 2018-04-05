@@ -26,7 +26,7 @@ public void CreateZoneEntity(int zoneIndex)
 			{
 				char szTriggerName[128];
 				GetEntPropString(iEnt, Prop_Send, "m_iName", szTriggerName, 128, 0);
-
+				// GetEntityClassname(iEnt, szClassName, sizeof(szClassName));
 				if (StrEqual(szHookName, szTriggerName))
 				{
 					Format(sZoneName, sizeof(sZoneName), "sm_ckZoneHooked %i", zoneIndex);
@@ -73,10 +73,11 @@ public void CreateZoneEntity(int zoneIndex)
 					}
 
 					DispatchKeyValue(iEnt, "targetname", sZoneName);
-					//DispatchKeyValue(iEnt, "m_iClassname", "hooked");
 
 					SDKHook(iEnt, SDKHook_StartTouch, StartTouchTrigger);
 					SDKHook(iEnt, SDKHook_EndTouch, EndTouchTrigger);
+
+					DispatchKeyValue(iEnt, "m_iClassname", "hooked");
 				}
 			}
 		}
@@ -171,12 +172,17 @@ public Action StartTouchTrigger(int caller, int activator)
 		if (action[0] < 6 && g_bInBonus[activator])
 		{
 			if (action[2] != g_iInBonus[activator])
+			{
 				return Plugin_Handled;
+			}
 		}
 		else
 		{
 			if (!g_bInBonus[activator] && action[2] > 0)
+			{
 				return Plugin_Handled;
+			}
+
 			else if (StrEqual(g_szMapName, "surf_christmas2") && !g_bUsingStageTeleport[activator])
 			{
 				if (action[0] == 3)
@@ -189,10 +195,13 @@ public Action StartTouchTrigger(int caller, int activator)
 	}
 	else
 	{
-		if (action[2] > 0)
-			g_bInBonus[activator] = true;
-		else
+		if (!g_bInBonus[activator] && action[2] > 0)
+		{
 			g_bInBonus[activator] = false;
+			return Plugin_Handled;
+		}
+		else if (action[2] > 0)
+			g_bInBonus[activator] = true;
 	}
 
 	if (g_bUsingStageTeleport[activator])
@@ -323,7 +332,18 @@ public void StartTouch(int client, int action[3])
 				}
 
 				if (g_bToggleMapFinish[client])
-					CL_OnEndTimerPress(client);
+				{
+					if (GetConVarBool(g_hMustPassCheckpoints) && g_iTotalCheckpoints > 0 && action[2] == 0)
+					{
+						if (g_bIsValidRun[client])
+							CL_OnEndTimerPress(client);
+						else
+							CPrintToChat(client, "%t", "InvalidRun", g_szChatPrefix, g_bhasStages ? "stages" : "checkpoints");
+					}
+					else
+						CL_OnEndTimerPress(client);
+				}
+
 			}
 			else
 			{
@@ -367,6 +387,11 @@ public void StartTouch(int client, int action[3])
 					float time = g_fCurrentRunTime[client];
 					float time2 = g_fCurrentWrcpRunTime[client];
 					CL_OnEndWrcpTimerPress(client, time2);
+					
+					// Stage enforcer
+					g_iCheckpointsPassed[client]++;
+					if (g_iCheckpointsPassed[client] == g_TotalStages)
+						g_bIsValidRun[client] = true;
 
 					if (g_iCurrentStyle[client] == 0)
 						Checkpoint(client, action[1], g_iClientInZone[client][2], time);
@@ -385,6 +410,15 @@ public void StartTouch(int client, int action[3])
 			if (action[1] != lastCheckpoint[g_iClientInZone[client][2]][client] && g_iClientInZone[client][2] == action[2])
 			{
 				g_iCurrentCheckpoint[client]++;
+				
+				// Checkpoint enforcer
+				if (GetConVarBool(g_hMustPassCheckpoints) && g_iTotalCheckpoints > 0)
+				{
+					g_iCheckpointsPassed[client]++;
+					if (g_iCheckpointsPassed[client] == g_iTotalCheckpoints)
+						g_bIsValidRun[client] = true;
+				}
+
 				// Announcing checkpoint in linear maps
 				if (g_iCurrentStyle[client] == 0)
 				{
@@ -930,7 +964,7 @@ public void ZoneMenu(int client)
 		ckZoneMenu.Display(client, MENU_TIME_FOREVER);
 	}
 	else
-		CPrintToChat(client, "%t", "SurfZones2", g_szChatPrefix);
+		CPrintToChat(client, "%t", "NoZoneAccess", g_szChatPrefix);
 }
 
 public int Handle_ZoneMenu(Handle tMenu, MenuAction action, int client, int item)
@@ -2160,7 +2194,7 @@ public int ZoneHookHandler(Handle menu, MenuAction action, int param1, int param
 				GetEntPropVector(iEnt, Prop_Send, "m_vecOrigin", position);
 				GetClientEyeAngles(param1, angles);
 
-				CPrintToChat(param1, "%t", "SurfZones11", g_szChatPrefix, szTriggerName, position[0], position[1], position[2]);
+				CPrintToChat(param1, "%t", "TeleportingTo", g_szChatPrefix, szTriggerName, position[0], position[1], position[2]);
 
 				teleportEntitySafe(param1, position, angles, view_as<float>( { 0.0, 0.0, -100.0 } ), true);
 				SelectTrigger(param1, index);
@@ -2322,12 +2356,11 @@ stock void RemoveZones()
 			 && GetEntPropString(i, Prop_Data, "m_iName", sClassName, sizeof(sClassName))
 			 && StrContains(sClassName, "sm_ckZone") != -1)
 		{
-			SDKUnhook(i, SDKHook_StartTouch, StartTouchTrigger);
-			SDKUnhook(i, SDKHook_EndTouch, EndTouchTrigger);
-			
 			// Don't destroy hooked zone entities
 			if (StrContains(sClassName, "sm_ckZoneHooked") == -1)
 			{
+				SDKUnhook(i, SDKHook_StartTouch, StartTouchTrigger);
+				SDKUnhook(i, SDKHook_EndTouch, EndTouchTrigger);
 				AcceptEntityInput(i, "Disable");
 				AcceptEntityInput(i, "Kill");
 			}

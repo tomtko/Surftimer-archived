@@ -30,6 +30,12 @@ public Action RefreshZoneSettings(Handle timer, any client)
 	return Plugin_Handled;
 }
 
+public Action RefreshZonesTimer(Handle timer)
+{
+	RefreshZones();
+	return Plugin_Handled;
+}
+
 public Action SetPlayerWeapons(Handle timer, any client)
 {
 	if ((GetClientTeam(client) > 1) && IsValidClient(client))
@@ -364,13 +370,41 @@ public Action SetClanTag(Handle timer, any client)
 	if (GetConVarBool(g_hCountry))
 	{
 		char tag[154];
-		Format(tag, 154, "%s | %s", g_szCountryCode[client], g_pr_rankname[client]);
+		Format(tag, 154, "%s | %s", g_szCountryCode[client], g_pr_rankname_style[client]);
+		if (g_iCurrentStyle[client] > 0)
+		{
+			char szStyle[128];
+			Format(szStyle, sizeof(szStyle), g_szStyleAcronyms[g_iCurrentStyle[client]]);
+			StringToUpper(szStyle);
+			Format(szStyle, sizeof(szStyle), "%s-", szStyle);
+			ReplaceString(tag, sizeof(tag), "{style}", szStyle);
+		}
+		else
+			ReplaceString(tag, sizeof(tag), "{style}", "");
+
 		CS_SetClientClanTag(client, tag);
 	}
 	else
 	{
 		if (GetConVarBool(g_hPointSystem))
-			CS_SetClientClanTag(client, g_pr_rankname[client]);
+		{
+			char tag[154];
+			Format(tag, 154, "%s", g_pr_rankname_style[client]);
+			
+			// Replace {style} with style
+			if (g_iCurrentStyle[client] > 0)
+			{
+				char szStyle[128];
+				Format(szStyle, sizeof(szStyle), g_szStyleAcronyms[g_iCurrentStyle[client]]);
+				StringToUpper(szStyle);
+				Format(szStyle, sizeof(szStyle), "%s-", szStyle);
+				ReplaceString(tag, sizeof(tag), "{style}", szStyle);
+			}
+			else
+				ReplaceString(tag, sizeof(tag), "{style}", "");
+
+			CS_SetClientClanTag(client, tag);
+		}
 	}
 
 	// new rank
@@ -384,10 +418,16 @@ public Action SetClanTag(Handle timer, any client)
 public Action TerminateRoundTimer(Handle timer)
 {
 	CS_TerminateRound(1.0, CSRoundEnd_CTWin, true);
+	bool bSlay = GetConVarBool(g_hSlayOnRoundEnd);
 	for (int i = 0; i <= MaxClients; i++)
 	{
 		if (IsValidClient(i) && !IsFakeClient(i))
-			ForcePlayerSuicide(i);
+		{
+			if (bSlay)
+				ForcePlayerSuicide(i);
+			else
+				Client_Stop(i, 1);
+		}
 	}
 	return Plugin_Handled;
 }
@@ -420,14 +460,14 @@ public Action AdvertTimer(Handle timer)
 		}
 		else if (g_bhasStages)
 		{
-			CPrintToChatAll("%t", "AdvertStage", g_szChatPrefix);
+			CPrintToChatAll("%t", "AdvertWRCP", g_szChatPrefix);
 		}
 	}
 	else
 	{
 		if (g_bhasStages)
 		{
-			CPrintToChatAll("%t", "AdvertStage", g_szChatPrefix);
+			CPrintToChatAll("%t", "AdvertWRCP", g_szChatPrefix);
 		}
 		else if (g_bhasBonus)
 		{
@@ -628,4 +668,10 @@ public Action SpecBot(Handle timer, Handle pack)
 	g_bWrcpTimeractivated[client] = false;
 
 	return Plugin_Handled;
+}
+
+public Action RestartPlayer(Handle timer, any client)
+{
+	if (IsValidClient(client))
+		Command_Restart(client, 1);
 }

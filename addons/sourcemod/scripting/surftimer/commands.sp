@@ -27,11 +27,11 @@ void CreateCommands()
 	RegConsoleCmd("sm_profile", Client_Profile, "[surftimer] opens a player profile");
 	RegConsoleCmd("sm_options", Client_OptionMenu, "[surftimer] opens options menu");
 	RegConsoleCmd("sm_top", Client_Top, "[surftimer] displays top rankings (Top 100 Players, Top 50 overall)");
-	RegConsoleCmd("sm_topSurfers", Client_Top, "[surftimer] displays top rankings (Top 100 Players, Top 50 overall)");
+	RegConsoleCmd("sm_topsurfers", Client_Top, "[surftimer] displays top rankings (Top 100 Players, Top 50 overall)");
 	RegConsoleCmd("sm_bonustop", Client_BonusTop, "[surftimer] displays top rankings of the bonus");
 	RegConsoleCmd("sm_btop", Client_BonusTop, "[surftimer] displays top rankings of the bonus");
 	RegConsoleCmd("sm_stop", Client_Stop, "[surftimer] stops your timer");
-	RegConsoleCmd("sm_ranks", Client_Ranks, "[surftimer] prints in chat the available player ranks");
+	RegConsoleCmd("sm_ranks", Client_Ranks, "[surftimer] Displays a menu with available player ranks");
 	RegConsoleCmd("sm_pause", Client_Pause, "[surftimer] on/off pause (timer on hold and movement frozen)");
 	RegConsoleCmd("sm_latest", Client_Latest, "[surftimer] shows latest map records");
 	RegConsoleCmd("sm_rr", Client_Latest, "[surftimer] shows latest map records");
@@ -75,9 +75,10 @@ void CreateCommands()
 	RegConsoleCmd("sm_tele", Command_goToPlayerCheckpoint, "[surftimer] Teleports player to his last checkpoint");
 	RegConsoleCmd("sm_prac", Command_goToPlayerCheckpoint, "[surftimer] Teleports player to his last checkpoint");
 	RegConsoleCmd("sm_practice", Command_goToPlayerCheckpoint, "[surftimer] Teleports player to his last checkpoint");
+	RegConsoleCmd("sm_loadloc", Command_goToPlayerCheckpoint, "[surftimer] Teleports player to his last checkpoint");
 
 	RegConsoleCmd("sm_cp", Command_createPlayerCheckpoint, "[surftimer] Creates a checkpoint, where the player can teleport back to");
-	RegConsoleCmd("sm_checkpoint", Command_createPlayerCheckpoint, "[surftimer] Creates a eckpoint, where the player can teleport back to");
+	RegConsoleCmd("sm_checkpoint", Command_createPlayerCheckpoint, "[surftimer] Creates a checkpoint, where the player can teleport back to");
 	// RegConsoleCmd("sm_undo", Command_undoPlayerCheckpoint, "[surftimer] Undoes the players lchast checkpoint.");
 	RegConsoleCmd("sm_normal", Command_normalMode, "[surftimer] Switches player back to normal mode.");
 	RegConsoleCmd("sm_n", Command_normalMode, "[surftimer] Switches player back to normal mode.");
@@ -132,7 +133,6 @@ void CreateCommands()
 	RegConsoleCmd("sm_goback", Command_GoBack, "[surftimer] Go back a stage");
 	RegConsoleCmd("sm_mtop", Client_MapTop, "[surftimer] displays local map top for a given map");
 	RegConsoleCmd("sm_p", Client_Profile, "[surftimer] opens a player profile");
-	RegConsoleCmd("sm_kp", Client_OptionMenu, "[surftimer] opens options menu");
 	RegConsoleCmd("sm_timer", Client_OptionMenu, "[surftimer] opens options menu");
 	RegConsoleCmd("sm_surftimer", Client_OptionMenu, "[surftimer] opens options menu");
 	RegConsoleCmd("sm_bhoptimer", Client_OptionMenu, "[surftimer] opens options menu");
@@ -285,28 +285,7 @@ void CreateCommandListeners()
 
 public Action sm_test(int client, int args)
 {
-	// for (int i = 0; i < 3; i++)
-	// 	CPrintToChat(client, "g_mapZones[0][PointA][%i]: %f", i, g_mapZones[0][PointA][i]);
-
-	// for (int i = 0; i < 3; i++)
-	// 	CPrintToChat(client, "g_mapZones[0][PointB][%i]: %f", i, g_mapZones[0][PointB][i]);
-	
-	// for (int i = 0; i < 7; i++)
-	// {
-	// 	for (int j = 0; j < 3; j++)
-	// 		CPrintToChat(client, "g_fZoneCorners[0][%i][%i]: %f", i, j, g_fZoneCorners[0][i][j]);
-	// }
-
-	// CPrintToChat(client, "g_iSelectedTrigger[client]: %i", g_iSelectedTrigger[client]);
-	// for (int i = 0; i < MAX_STYLES; i++)
-	// {
-	// 	CPrintToChat(client, "g_fReplayTimes[0][%d]: %f", i, g_fReplayTimes[0][i]);
-	// }
-	// CPrintToChat(client, "%s", g_szSoundPathWR);
-	// CPrintToChat(client, "%s", g_szRelativeSoundPathWR);
-	// CPrintToChat(client, "%d", g_ZonerFlag);
-	CPrintToChat(client, "%s Map Record: 00:04:45 [aveniccii] [Avg: 00:05:39 (4)]", g_szChatPrefix);
-
+	CPrintToChatAll("%d", g_iMapTier);
 	return Plugin_Handled;
 }
 
@@ -314,7 +293,7 @@ public Action Client_GetVelocity(int client, int args)
 {
 	float CurVelVec[3];
 	GetEntPropVector(client, Prop_Data, "m_vecVelocity", CurVelVec);
-	CPrintToChat(client, "%t", "Commands1", CurVelVec[0], CurVelVec[1], CurVelVec[2]);
+	CPrintToChat(client, "%t", "Commands1", g_szChatPrefix, CurVelVec[0], CurVelVec[1], CurVelVec[2]);
 
 	return Plugin_Handled;
 }
@@ -325,8 +304,8 @@ public Action Client_TargetName(int client, int args)
 	char szClassName[128];
 	GetEntPropString(client, Prop_Data, "m_iName", szTargetName, sizeof(szTargetName));
 	GetEntityClassname(client, szClassName, 128);
-	CPrintToChat(client, "%t", "Commands2", szTargetName);
-	CPrintToChat(client, "%t", "Commands3", szClassName);
+	CPrintToChat(client, "%t", "Commands2", g_szChatPrefix, szTargetName);
+	CPrintToChat(client, "%t", "Commands3", g_szChatPrefix, szClassName);
 
 	return Plugin_Handled;
 }
@@ -462,7 +441,7 @@ public void VoteExtend(int client)
 	AddMenuItem(menu, "###no###", "No");
 	SetMenuExitButton(menu, false);
 	VoteMenuToAll(menu, 20);
-	CPrintToChatAll("%t", "Commands6", g_szChatPrefix, szPlayerName);
+	CPrintToChatAll("%t", "VoteStartedBy", g_szChatPrefix, szPlayerName);
 
 	return;
 }
@@ -606,6 +585,13 @@ public Action Command_SaveLocList(int client, int args)
 		return Plugin_Handled;
 	}
 
+	SaveLocMenu(client);
+
+	return Plugin_Handled;
+}
+
+public void SaveLocMenu(int client)
+{
 	Menu menu = CreateMenu(SaveLocListHandler);
 	SetMenuTitle(menu, "Save Locs");
 	char szBuffer[128];
@@ -620,24 +606,46 @@ public Action Command_SaveLocList(int client, int args)
 		IntToString(i, szId, 32);
 		AddMenuItem(menu, szId, szItem);
 	}
-	SetMenuOptionFlags(menu, MENUFLAG_BUTTON_EXIT);
-	DisplayMenu(menu, client, MENU_TIME_FOREVER);
 
-	return Plugin_Handled;
+	int pos = g_iMenuPosition[client];
+	if (pos < 6)
+		pos = 0;
+	else if (pos < 12)
+		pos = 6;
+	else if (pos < 18)
+		pos = 12;
+	else if (pos < 24)
+		pos = 18;
+	else if (pos < 30)
+		pos = 24;
+	else if (pos < 36)
+		pos = 30;
+	else if (pos < 42)
+		pos = 36;
+	else if (pos < 48)
+		pos = 42;
+	else if (pos < 54)
+		pos = 48;
+	else if (pos < 60)
+		pos = 54;
+	SetMenuOptionFlags(menu, MENUFLAG_BUTTON_EXIT);
+	DisplayMenuAtItem(menu, client, pos, MENU_TIME_FOREVER);
 }
 
 public int SaveLocListHandler(Menu menu, MenuAction action, int param1, int param2)
 {
 	if (action == MenuAction_Select)
 	{
+		g_iMenuPosition[param1] = param2;
 		char szId[32];
 		GetMenuItem(menu, param2, szId, 32);
 		int id = StringToInt(szId);
 		CPrintToChat(param1, "%t", "Commands13", g_szChatPrefix, id);
 		TeleportToSaveloc(param1, id);
+		SaveLocMenu(param1);
 	}
 	else if (action == MenuAction_End)
-		CloseHandle(menu);
+		delete menu;
 }
 
 // public Action Command_goToPlayerCheckpoint(int client, int args)
@@ -667,7 +675,7 @@ public int SaveLocListHandler(Menu menu, MenuAction action, int param1, int para
 // 		DispatchKeyValue(client, "targetname", g_szCheckpointTargetname[client]);
 // 	}
 // 	else
-// 		CPrintToChat(client, "%t", "PracticeStartError", g_szChatPrefix, MOSSGREEN);
+// 		CPrintToChat(client, "%t", "PracticeStartError", g_szChatPrefix, LIGHTGREEN);
 
 // 	return Plugin_Handled;
 // }
@@ -705,7 +713,7 @@ public int SaveLocListHandler(Menu menu, MenuAction action, int param1, int para
 // 		CPrintToChat(client, "%t", "PracticeUndo", g_szChatPrefix);
 // 	}
 // 	else
-// 		CPrintToChat(client, "%t", "PracticeUndoError", g_szChatPrefix, MOSSGREEN);
+// 		CPrintToChat(client, "%t", "PracticeUndoError", g_szChatPrefix, LIGHTGREEN);
 
 // 	return Plugin_Handled;
 // }
@@ -789,7 +797,7 @@ public void ListBonuses(int client, int type)
 	}
 	else
 	{
-		CPrintToChat(client, "%t", "Commands14", g_szChatPrefix);
+		CPrintToChat(client, "%t", "NoBonusInMap", g_szChatPrefix);
 		return;
 	}
 
@@ -824,7 +832,8 @@ public int MenuHandler_SelectBonus(Menu sMenu, MenuAction action, int client, in
 			char aID[3];
 			GetMenuItem(sMenu, item, aID, sizeof(aID));
 			int zoneGrp = StringToInt(aID);
-
+			g_bInBonus[client] = true;
+			g_iInBonus[client] = zoneGrp;
 			teleportClient(client, zoneGrp, 1, true);
 		}
 		case MenuAction_End:
@@ -841,7 +850,7 @@ public Action Command_ToBonus(int client, int args)
 
 	if (g_mapZoneGroupCount < 2)
 	{
-		CPrintToChat(client, "%t", "Commands15", g_szChatPrefix);
+		CPrintToChat(client, "%t", "NoBonusInMap", g_szChatPrefix);
 		return Plugin_Handled;
 	}
 
@@ -880,6 +889,8 @@ public Action Command_ToBonus(int client, int args)
 	else
 		zoneGrp = 1;
 
+	g_bInBonus[client] = true;
+	g_iInBonus[client] = zoneGrp;
 	teleportClient(client, zoneGrp, 1, true);
 	return Plugin_Handled;
 }
@@ -1516,16 +1527,17 @@ public int MapTopMenuSelectStyleHandler(Handle menu, MenuAction action, int para
 	{
 		char szMapName[128];
 		GetMenuItem(menu, param2, szMapName, sizeof(szMapName));
-		if (param2 == 0)
-		{
-			g_ProfileStyleSelect[param1] = 0;
-			db_selectMapTopSurfers(param1, szMapName);
-		}
-		else
-		{
-			g_ProfileStyleSelect[param1] = param2;
-			db_selectStyleMapTopSurfers(param1, szMapName, param2);
-		}
+		db_selectMapNameEquals(param1, szMapName, param2);
+		// if (param2 == 0)
+		// {
+		// 	g_ProfileStyleSelect[param1] = 0;
+		// 	db_selectMapTopSurfers(param1, szMapName);
+		// }
+		// else
+		// {
+		// 	g_ProfileStyleSelect[param1] = param2;
+		// 	db_selectStyleMapTopSurfers(param1, szMapName, param2);
+		// }
 	}
 	else if (action == MenuAction_End)
 		delete menu;
@@ -1542,8 +1554,8 @@ public Action Client_BonusTop(int client, int args)
 		case 0: { // !btop
 			if (g_mapZoneGroupCount == 1)
 			{
-				CPrintToChat(client, "%t", "Commands21", g_szChatPrefix);
-				CPrintToChat(client, "%t", "Commands22", g_szChatPrefix);
+				CPrintToChat(client, "%t", "NoBonusFound", g_szChatPrefix);
+				CPrintToChat(client, "%t", "BTopUsage", g_szChatPrefix);
 				return Plugin_Handled;
 			}
 			if (g_mapZoneGroupCount == 2)
@@ -1574,7 +1586,7 @@ public Action Client_BonusTop(int client, int args)
 				}
 				else
 				{
-					CPrintToChat(client, "%t", "Commands23", g_szChatPrefix, zGrp);
+					CPrintToChat(client, "%t", "InvalidBonusID", g_szChatPrefix, zGrp);
 					return Plugin_Handled;
 				}
 			}
@@ -1595,12 +1607,12 @@ public Action Client_BonusTop(int client, int args)
 
 			if (0 > zGrp || zGrp > MAXZONEGROUPS)
 			{
-				CPrintToChat(client, "%t", "Commands24", g_szChatPrefix, zGrp);
+				CPrintToChat(client, "%t", "InvalidBonusID", g_szChatPrefix, zGrp);
 				return Plugin_Handled;
 			}
 		}
 		default: {
-			CPrintToChat(client, "%t", "Commands25", g_szChatPrefix);
+			CPrintToChat(client, "%t", "BTopUsage", g_szChatPrefix);
 			return Plugin_Handled;
 		}
 	}
@@ -1619,8 +1631,8 @@ public Action Client_SWBonusTop(int client, int args)
 		case 0: { // !btop
 			if (g_mapZoneGroupCount == 1)
 			{
-				CPrintToChat(client, "%t", "Commands26", g_szChatPrefix);
-				CPrintToChat(client, "%t", "Commands27", g_szChatPrefix);
+				CPrintToChat(client, "%t", "NoBonusFound", g_szChatPrefix);
+				CPrintToChat(client, "%t", "BTopUsage", g_szChatPrefix);
 				return Plugin_Handled;
 			}
 			if (g_mapZoneGroupCount == 2)
@@ -1651,7 +1663,7 @@ public Action Client_SWBonusTop(int client, int args)
 				}
 				else
 				{
-					CPrintToChat(client, "%t", "Commands28", g_szChatPrefix, zGrp);
+					CPrintToChat(client, "%t", "InvalidBonusID", g_szChatPrefix, zGrp);
 					return Plugin_Handled;
 				}
 			}
@@ -1672,12 +1684,12 @@ public Action Client_SWBonusTop(int client, int args)
 
 			if (0 > zGrp || zGrp > MAXZONEGROUPS)
 			{
-				CPrintToChat(client, "%t", "Commands29", g_szChatPrefix, zGrp);
+				CPrintToChat(client, "%t", "InvalidBonusID", g_szChatPrefix, zGrp);
 				return Plugin_Handled;
 			}
 		}
 		default: {
-			CPrintToChat(client, "%t", "Commands30", g_szChatPrefix);
+			CPrintToChat(client, "%t", "BTopUsage", g_szChatPrefix);
 			return Plugin_Handled;
 		}
 	}
@@ -1961,6 +1973,17 @@ void CenterSpeedDisplay(int client, bool menu = false)
 		MiscellaneousOptions(client);
 }
 
+void TeleSide(int client, bool menu = false)
+{
+	if (g_iTeleSide[client] == 0)
+		g_iTeleSide[client]++;
+	else
+		g_iTeleSide[client] = 0;
+	
+	if (menu)
+		MiscellaneousOptions(client);
+}
+
 public Action Client_Hide(int client, int args)
 {
 	HideMethod(client);
@@ -2073,6 +2096,7 @@ public void displayRanksMenu(int client)
 	for (int i = 0; i < GetArraySize(g_hSkillGroups); i++)
 	{
 		GetArrayArray(g_hSkillGroups, i, RankValue[0]);
+		ReplaceString(RankValue[RankName], sizeof(RankValue), "{style}", "");
 		if (RankValue[PointsBot] > -1 && RankValue[PointsTop] > -1)
 			Format(ChatLine, 512, "%i-%i Points: %s", RankValue[PointsBot], RankValue[PointsTop], RankValue[RankName]);
 		else if (RankValue[PointReq] > -1)
@@ -2664,7 +2688,7 @@ public void BonusTopMenu(int client)
 		}
 		else
 		{
-			CPrintToChat(client, "%t", "Commands35", g_szChatPrefix);
+			CPrintToChat(client, "%t", "NoBonusInMap", g_szChatPrefix);
 			return;
 		}
 
@@ -2815,7 +2839,7 @@ public void ShowSrvSettings(int client)
 	PrintToConsole(client, "-----------------");
 	PrintToConsole(client, "settings");
 	PrintToConsole(client, "-------------------------------------");
-	CPrintToChat(client, "%t", "Commands36", g_szChatPrefix);
+	CPrintToChat(client, "%t", "ConsoleOutput", g_szChatPrefix);
 }
 
 public void OptionMenu(int client)
@@ -3192,11 +3216,11 @@ public void MiscellaneousOptions(int client)
 	else
 		AddMenuItem(menu, "", "[OFF] Timer Sounds");
 	
-	// Hide Weapon
-	if (g_bViewModel[client])
-		AddMenuItem(menu, "", "[OFF] Hide Weapon");
+	// Tele Side
+	if (g_iTeleSide[client] == 0)
+		AddMenuItem(menu, "", "[LEFT] Start Side");
 	else
-		AddMenuItem(menu, "", "[ON] Hide Weapon");
+		AddMenuItem(menu, "", "[RIGHT] Start Side");
 
 	// Speed Gradient
 	if (g_SpeedGradient[client] == 0)
@@ -3228,6 +3252,13 @@ public void MiscellaneousOptions(int client)
 	else
 		AddMenuItem(menu, "", "[OFF] Hide Chat");
 
+	// Hide Weapon
+	if (g_bViewModel[client])
+		AddMenuItem(menu, "", "[OFF] Hide Weapon");
+	else
+		AddMenuItem(menu, "", "[ON] Hide Weapon");
+	
+
 	SetMenuExitBackButton(menu, true);
 	DisplayMenu(menu, client, MENU_TIME_FOREVER);
 }
@@ -3240,11 +3271,12 @@ public int MiscellaneousOptionsHandler(Menu menu, MenuAction action, int param1,
 		{
 			case 0: HideMethod(param1, true);
 			case 1: QuakeSounds(param1, true);
-			case 2: HideViewModel(param1, true);
+			case 2: TeleSide(param1, true);
 			case 3: SpeedGradient(param1, true);
 			case 4: SpeedMode(param1, true);
 			case 5: CenterSpeedDisplay(param1, true);
 			case 6: HideChat(param1, true);
+			case 7: HideViewModel(param1, true);
 		}
 	}
 	else if (action == MenuAction_Cancel)
@@ -3326,7 +3358,7 @@ public Action Command_JoinMsg(int client, int args)
 
 	if (args == 0)
 	{
-		CReplyToCommand(client, "%t", "Commands73", g_szChatPrefix, QUOTE, QUOTE);
+		CReplyToCommand(client, "%t", "Commands73", g_szChatPrefix);
 		return Plugin_Handled;
 	}
 
@@ -3389,7 +3421,7 @@ public Action Command_SetDbNameColour(int client, int args)
 		{
 			arg = "4";
 		}
-		else if (StrContains(upperArg, "{MOSSGREEN}", false)!=-1)
+		else if (StrContains(upperArg, "{LIGHTGREEN}", false)!=-1)
 		{
 		 	arg = "5";
 		}
@@ -3482,7 +3514,7 @@ public Action Command_SetDbTextColour(int client, int args)
 		{
 			arg = "4";
 		}
-		else if (StrContains(upperArg, "{MOSSGREEN}", false)!=-1 || StrContains(upperArg, "{OLIVE}", false)!=-1)
+		else if (StrContains(upperArg, "{LIGHTGREEN}", false)!=-1 || StrContains(upperArg, "{OLIVE}", false)!=-1)
 		{
 		 	arg = "5";
 		}
@@ -3960,7 +3992,7 @@ public Action Command_SelectBonusTime(int client, int args)
 			}
 			else if (g_mapZoneGroupCount == 1)
 			{
-				CReplyToCommand(client, "%t", "Commands75", g_szChatPrefix);
+				CReplyToCommand(client, "%t", "BonusNotFound", g_szChatPrefix);
 				return Plugin_Handled;
 			}
 
@@ -4026,7 +4058,7 @@ public Action Command_SelectBonusTime(int client, int args)
 				}
 				else if (g_mapZoneGroupCount == 1)
 				{
-					CReplyToCommand(client, "%t", "Commands77", g_szChatPrefix);
+					CReplyToCommand(client, "%t", "BonusNotFound", g_szChatPrefix);
 					return Plugin_Handled;
 				}
 
@@ -4401,7 +4433,7 @@ public void HookZonesMenu(int client)
 {
 	if (!IsPlayerZoner(client))
 	{
-		CPrintToChat(client, "%t", "Commands57", g_szChatPrefix);
+		CPrintToChat(client, "%t", "NoZoneAccess", g_szChatPrefix);
 		return;
 	}
 
@@ -4471,7 +4503,7 @@ public int HookZoneHandler(Menu menu, MenuAction action, int param1, int param2)
 					char szTriggerName[128];
 					GetEntPropString(iEnt, Prop_Send, "m_iName", szTriggerName, 128, 0);
 
-					CPrintToChat(param1, "%t", "Commands59", g_szChatPrefix, szTriggerName, position[0], position[1], position[2]);
+					CPrintToChat(param1, "%t", "TeleportingTo", g_szChatPrefix, szTriggerName, position[0], position[1], position[2]);
 
 					// teleportEntitySafe(param1, position, angles, view_as<float>( { 0.0, 0.0, -100.0 } ), true);
 					Client_Stop(param1, 0);
@@ -4702,7 +4734,7 @@ public void ReportBugMenu(int client)
 	Menu menu = CreateMenu(ReportBugHandler);
 	SetMenuTitle(menu, "Choose a bug type");
 	AddMenuItem(menu, "Map Bug", "Map Bug");
-	AddMenuItem(menu, "Surftimer Bug", "Surftimer Bug");
+	AddMenuItem(menu, "SurfTimer Bug", "SurfTimer Bug");
 	AddMenuItem(menu, "Server Bug", "Server Bug");
 	SetMenuExitButton(menu, true);
 	DisplayMenu(menu, client, MENU_TIME_FOREVER);
@@ -4945,7 +4977,6 @@ public int PlayRecordMenuHandler(Handle menu, MenuAction action, int param1, int
 
 		int bot;
 		bool bSpec = true;
-
 		// Did the client select a map replay?
 		if ((StrContains(szBuffer, "map", false)) != -1)
 		{
@@ -4996,7 +5027,6 @@ public int PlayRecordMenuHandler(Handle menu, MenuAction action, int param1, int
 				char szBuffer2[2][128];
 				ExplodeString(szBuffer, "bonus-", szBuffer2, 2, sizeof(szBuffer2));
 				bonus = StringToInt(szBuffer2[1]);
-
 				// Check for style replay
 				if ((StrContains(szBuffer, "style", false)) != -1)
 				{
@@ -5005,6 +5035,8 @@ public int PlayRecordMenuHandler(Handle menu, MenuAction action, int param1, int
 					ExplodeString(szBuffer, "style-", szBuffer2, 2, 128);
 					int style = StringToInt(szBuffer2[1]);
 					g_iSelectedBonusReplayStyle = style;
+					g_iCurrentBonusReplayIndex = 99;
+					g_iManualBonusToReplay = bonus;
 					PlayRecord(bot, bonus, style);
 				}
 				else
@@ -5012,6 +5044,8 @@ public int PlayRecordMenuHandler(Handle menu, MenuAction action, int param1, int
 					g_bManualBonusReplayPlayback = true;
 					g_iManualBonusReplayCount = 99;
 					g_iSelectedBonusReplayStyle = 0;
+					g_iCurrentBonusReplayIndex = 99;
+					g_iManualBonusToReplay = bonus;
 					PlayRecord(bot, bonus, 0);
 				}
 			}
@@ -5040,7 +5074,6 @@ public int PlayRecordMenuHandler(Handle menu, MenuAction action, int param1, int
 				PlayRecord(bot, -stage, 0);
 			}
 		}
-
 		if (bSpec)
 		{
 			// Delay the switch to spec so the client sees the new bot name

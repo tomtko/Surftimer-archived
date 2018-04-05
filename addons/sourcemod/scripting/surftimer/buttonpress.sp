@@ -63,6 +63,8 @@ public void CL_OnStartTimerPress(int client)
 		g_iGoodGains[client] = 0;
 		g_iTotalMeasures[client] = 0;
 		g_iCurrentCheckpoint[client] = 0;
+		g_iCheckpointsPassed[client] = 0;
+		g_bIsValidRun[client] = false;
 
 		if (!IsFakeClient(client))
 		{
@@ -462,7 +464,7 @@ public void CL_OnEndTimerPress(int client)
 				{
 					if (IsValidClient(i) && !IsFakeClient(i))
 					{
-						CPrintToChat(i, "%t", "BPress6", g_szChatPrefix, szName, g_szStyleFinishPrint[style], g_szFinalTime[client], g_szTimeDifference[client], g_StyleMapRank[style][client], count, g_szRecordStyleMapTime[style]);
+						CPrintToChat(i, "%t", "BPress6", g_szChatPrefix, szName, g_szStyleRecordPrint[style], g_szFinalTime[client], g_szTimeDifference[client], g_StyleMapRank[style][client], count, g_szRecordStyleMapTime[style]);
 					}
 				}
 			}
@@ -745,6 +747,7 @@ public void CL_OnStartWrcpTimerPress(int client)
 			g_fCurrentWrcpRunTime[client] = 0.0;
 			g_bWrcpTimeractivated[client] = true;
 			g_bNotTeleporting[client] = true;
+			g_WrcpStage[client] = g_Stage[0][client];
 			Stage_StartRecording(client);
 		}
 	}
@@ -754,29 +757,19 @@ public void CL_OnStartWrcpTimerPress(int client)
 public void CL_OnEndWrcpTimerPress(int client, float time2)
 {
 	if (!IsValidClient(client))
-	return;
+		return;
 
 	// Print bot finishing message to spectators
-	if (IsFakeClient(client) && g_bWrcpTimeractivated[client] || IsFakeClient(client))
+	if (IsFakeClient(client))
 	{
 		g_bWrcpTimeractivated[client] = false;
 		return;
 	}
 
+	int stage = g_WrcpStage[client];
 	// Get Client Name
 	char szName[MAX_NAME_LENGTH];
 	GetClientName(client, szName, MAX_NAME_LENGTH);
-
-
-	// if (g_bWrcpEndZone[client])
-	// {
-	// 	g_CurrentStage[client] += 1;
-	// 	g_bWrcpEndZone[client] = false;
-	// }
-	// else
-	// 	g_CurrentStage[client] = g_Stage[g_iClientInZone[client][2]][client] - 1;
-
-	int stage = g_Stage[0][client] - 1;
 
 	if (g_bWrcpEndZone[client])
 	{
@@ -786,6 +779,8 @@ public void CL_OnEndWrcpTimerPress(int client, float time2)
 
 	if (stage > g_TotalStages) // Hack Fix for multiple end zone issue
 		stage = g_TotalStages;
+	else if (stage < 1)
+		stage = 1;
 
 	if (g_bWrcpTimeractivated[client] && g_iCurrentStyle[client] == 0)
 	{
@@ -797,7 +792,7 @@ public void CL_OnEndWrcpTimerPress(int client, float time2)
 		// g_fFinalWrcpTime[client] = g_fStartWrcpTime[client] - time2;
 		if (g_fFinalWrcpTime[client] <= 0.0)
 		{
-			CPrintToChat(client, "%t", "BPress8", g_szChatPrefix, stage);
+			CPrintToChat(client, "%t", "ErrorStageTime", g_szChatPrefix, stage);
 			return;
 		}
 
@@ -808,12 +803,12 @@ public void CL_OnEndWrcpTimerPress(int client, float time2)
 		if (f_srDiff > 0)
 		{
 			// Format(sz_srDiff_colorless, 128, "-%s", sz_srDiff);
-			Format(sz_srDiff, 128, " %c%cWR: %c-%s%c", YELLOW, PURPLE, GREEN, sz_srDiff, YELLOW);
+			Format(sz_srDiff, 128, "%cWR: %c-%s%c", WHITE, GREEN, sz_srDiff, WHITE);
 		}
 		else
 		{
 			// Format(sz_srDiff_colorless, 128, "+%s", sz_srDiff);
-			Format(sz_srDiff, 128, " %c%cWR: %c+%s%c", YELLOW, PURPLE, RED, sz_srDiff, YELLOW);
+			Format(sz_srDiff, 128, "%cWR: %c+%s%c", WHITE, RED, sz_srDiff, WHITE);
 		}
 		// g_fLastDifferenceTime[client] = GetGameTime();
 		/*else
@@ -849,7 +844,7 @@ public void CL_OnEndWrcpTimerPress(int client, float time2)
 		g_fFinalWrcpTime[client] = GetGameTime() - g_fStartWrcpTime[client];
 		if (g_fFinalWrcpTime[client] <= 0.0)
 		{
-			CPrintToChat(client, "%t", "BPress9", g_szChatPrefix, stage);
+			CPrintToChat(client, "%t", "ErrorStageTime", g_szChatPrefix, stage);
 			return;
 		}
 
@@ -860,12 +855,12 @@ public void CL_OnEndWrcpTimerPress(int client, float time2)
 		if (f_srDiff > 0)
 		{
 			// Format(sz_srDiff_colorless, 128, "-%s", sz_srDiff);
-			Format(sz_srDiff, 128, " %c%cWR: %c-%s%c", YELLOW, PURPLE, GREEN, sz_srDiff, YELLOW);
+			Format(sz_srDiff, 128, "%cWR: %c-%s%c", WHITE, GREEN, sz_srDiff, WHITE);
 		}
 		else
 		{
 			// Format(sz_srDiff_colorless, 128, "+%s", sz_srDiff);
-			Format(sz_srDiff, 128, " %c%cWR: %c+%s%c", YELLOW, PURPLE, RED, sz_srDiff, YELLOW);
+			Format(sz_srDiff, 128, "%cWR: %c+%s%c", WHITE, RED, sz_srDiff, WHITE);
 		}
 		// g_fLastDifferenceTime[client] = GetGameTime();
 		/*else

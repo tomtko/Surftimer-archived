@@ -10,6 +10,7 @@
 ====================================*/
 
 #include <sourcemod>
+// #include <regex>
 #include <sdkhooks>
 #include <adminmenu>
 #include <cstrike>
@@ -55,12 +56,12 @@
 #define DARKRED 0x02
 #define PURPLE 0x03
 #define GREEN 0x04
-#define MOSSGREEN 0x05
+#define LIGHTGREEN 0x05
 #define LIMEGREEN 0x06
 #define RED 0x07
-#define ORANGE 0x10
 #define GRAY 0x08
 #define YELLOW 0x09
+#define ORANGE 0x10
 #define DARKGREY 0x0A
 #define BLUE 0x0B
 #define DARKBLUE 0x0C
@@ -256,14 +257,15 @@ bool g_bShowZones[MAXPLAYERS + 1];
 
 // Which stage is the client in
 int g_Stage[MAXZONEGROUPS][MAXPLAYERS + 1];
+int g_WrcpStage[MAXPLAYERS + 1];
 
 bool g_bhasStages;
 
 /*----------  Spawn Locations  ----------*/
-float g_fSpawnLocation[MAXZONEGROUPS][CPLIMIT][3];
-float g_fSpawnAngle[MAXZONEGROUPS][CPLIMIT][3];
-float g_fSpawnVelocity[MAXZONEGROUPS][CPLIMIT][3];
-bool g_bGotSpawnLocation[MAXZONEGROUPS][CPLIMIT];
+float g_fSpawnLocation[MAXZONEGROUPS][CPLIMIT][2][3];
+float g_fSpawnAngle[MAXZONEGROUPS][CPLIMIT][2][3];
+float g_fSpawnVelocity[MAXZONEGROUPS][CPLIMIT][2][3];
+bool g_bGotSpawnLocation[MAXZONEGROUPS][CPLIMIT][2];
 
 /*----------  Bonus Variables  ----------*/
 
@@ -561,7 +563,7 @@ int g_Top10Maps[MAX_PR_PLAYERS + 1][MAX_STYLES];
 // 0 = wr, 1 = wrb, 2 = wrcp
 int g_WRs[MAX_PR_PLAYERS + 1][MAX_STYLES][3];
 
-// 0 = Map Points, 1 = Bonus Points, 2 = Group Points, 3 = Map WR Points, 4 = Bonus WR Points, 5 = Top 10 Points
+// 0 = Map Points, 1 = Bonus Points, 2 = Group Points, 3 = Map WR Points, 4 = Bonus WR Points, 5 = Top 10 Points, 6 = WRCP Points
 int g_Points[MAX_PR_PLAYERS + 1][MAX_STYLES][7];
 
 int g_ClientProfile[MAXPLAYERS + 1];
@@ -776,6 +778,9 @@ bool g_bSpecListOnly[MAXPLAYERS + 1];
 bool g_bSideHud[MAXPLAYERS + 1];
 int g_iSideHudModule[MAXPLAYERS + 1][5];
 
+// Custom tele side
+int g_iTeleSide[MAXPLAYERS + 1];
+
 /*----------  Run Variables  ----------*/
 
 // Clients personal record in map
@@ -947,6 +952,8 @@ int g_BonusBotCount;
 int g_iCurrentBonusReplayIndex;
 int g_iBonusToReplay[MAXZONEGROUPS + 1];
 float g_fReplayTimes[MAXZONEGROUPS][MAX_STYLES];
+int g_iManualBonusToReplay;
+int g_iCurrentlyPlayingStage;
 
 /*----------  Misc  ----------*/
 
@@ -1028,8 +1035,10 @@ int g_PlayerChatRank[MAXPLAYERS + 1];
 
 // Clients rank, colored, used in chat
 char g_pr_chat_coloredrank[MAXPLAYERS + 1][256];
+char g_pr_chat_coloredrank_style[MAXPLAYERS + 1][256];
 
 // Client's rank, non-colored, used in clantag
+char g_pr_rankname_style[MAXPLAYERS + 1][32];
 char g_pr_rankname[MAXPLAYERS + 1][32];
 char g_pr_namecolour[MAXPLAYERS + 1][32];
 
@@ -1184,7 +1193,7 @@ bool g_bReportSuccess[MAXPLAYERS + 1];
 float g_fSpawnPosition[MAXPLAYERS + 1][3];
 
 // Chat Colors in String Format
-char szWHITE[12], szDARKRED[12], szPURPLE[12], szGREEN[12], szMOSSGREEN[12], szLIMEGREEN[12], szRED[12], szGRAY[12], szYELLOW[12], szDARKGREY[12], szBLUE[12], szDARKBLUE[12], szLIGHTBLUE[12], szPINK[12], szLIGHTRED[12], szORANGE[12];
+char szWHITE[12], szDARKRED[12], szPURPLE[12], szGREEN[12], szLIGHTGREEN[12], szLIMEGREEN[12], szRED[12], szGRAY[12], szYELLOW[12], szDARKGREY[12], szBLUE[12], szDARKBLUE[12], szLIGHTBLUE[12], szPINK[12], szLIGHTRED[12], szORANGE[12];
 
 // hook zones
 Handle g_hTriggerMultiple;
@@ -1257,6 +1266,7 @@ char g_szSaveLocClientName[MAX_LOCS][MAX_NAME_LENGTH];
 int g_iLastSaveLocIdClient[MAXPLAYERS + 1];
 float g_fLastCheckpointMade[MAXPLAYERS + 1];
 int g_iSaveLocUnix[MAX_LOCS]; // [loc id]
+int g_iMenuPosition[MAXPLAYERS + 1];
 
 char g_sServerName[256];
 ConVar g_hHostName = null;
@@ -1321,6 +1331,16 @@ int g_SelectedType[MAXPLAYERS + 1];
 char g_EditTypes[][] =  { "Main", "Stage", "Bonus" };
 char g_EditStyles[][] =  { "Normal", "Sideways", "Half-Sideways", "Backwards", "Low-Gravity", "Slow Motion", "Fast Forward"};
 
+// Checkpoint/Stage enforcer
+int g_iTotalCheckpoints;
+int g_iCheckpointsPassed[MAXPLAYERS + 1];
+bool g_bIsValidRun[MAXPLAYERS + 1];
+
+// Prestige
+bool g_bPrestigeCheck[MAXPLAYERS + 1];
+
+// Menus mapname
+char g_szMapNameFromDatabase[MAXPLAYERS + 1][128];
 
 /*===================================
 =         Predefined Arrays         =
@@ -1453,26 +1473,15 @@ char UnallowedTitles[][] =
 	"SUPER VIP"
 };
 
-char g_szStyleFinishPrint[][] =
-{
-	"",
-	"*sideways*",
-	"*half-sideways*",
-	"*backwards*",
-	"*low gravity*",
-	"*slow motion*",
-	"*fast forwards*"
-};
-
 char g_szStyleRecordPrint[][] =
 {
 	"",
-	"*SIDEWAYS*",
-	"*HALF-SIDEWAYS*",
-	"*BACKWARDS*",
-	"*LOW GRAVITY*",
-	"*SLOW MOTION*",
-	"*FAST FORWARD*"
+	"*Sideways*",
+	"*Half-Sideways*",
+	"*Backwards*",
+	"*Low-Gravity*",
+	"*Slow Motion*",
+	"*Fast Forward*"
 };
 
 char g_szStyleMenuPrint[][] =
@@ -1732,7 +1741,7 @@ public void OnMapStart()
 	if (g_hTriggerMultiple != null)
 		CloseHandle(g_hTriggerMultiple);
 
-	g_hTriggerMultiple = CreateArray(128);
+	g_hTriggerMultiple = CreateArray(256);
 	while ((iEnt = FindEntityByClassname(iEnt, "trigger_multiple")) != -1)
 	{
 		PushArrayCell(g_hTriggerMultiple, iEnt);
@@ -1922,6 +1931,7 @@ public void OnClientPutInServer(int client)
 
 	// Defaults
 	SetClientDefaults(client);
+	Command_Restart(client, 1);
 
 	// SDKHooks
 	SDKHook(client, SDKHook_SetTransmit, Hook_SetTransmit);
@@ -2518,7 +2528,7 @@ public void OnSettingChanged(Handle convar, const char[] oldValue, const char[] 
 
 		if (!validFlag)
 		{
-			PrintToServer("Surftimer | Invalid flag for ck_zoner_flag");
+			PrintToServer("SurfTimer | Invalid flag for ck_zoner_flag");
 			g_ZonerFlag = ADMFLAG_ROOT;
 		}
 		else
@@ -2532,7 +2542,7 @@ public void OnSettingChanged(Handle convar, const char[] oldValue, const char[] 
 
 		if (!validFlag)
 		{
-			PrintToServer("Surftimer | Invalid flag for ck_adminmenu_flag");
+			PrintToServer("SurfTimer | Invalid flag for ck_adminmenu_flag");
 			g_AdminMenuFlag = ADMFLAG_ROOT;
 		}
 		else
@@ -2572,7 +2582,7 @@ public void OnSettingChanged(Handle convar, const char[] oldValue, const char[] 
 
 		if (!validFlag)
 		{
-			LogError("Surftimer | Invalid flag for ck_vip_flag");
+			LogError("SurfTimer | Invalid flag for ck_vip_flag");
 			g_VipFlag = ADMFLAG_RESERVATION;
 		}
 		else
@@ -2726,7 +2736,7 @@ public void OnPluginStart()
 	Format(szDARKRED, 12, "%c", DARKRED);
 	Format(szPURPLE, 12, "%c", PURPLE);
 	Format(szGREEN, 12, "%c", GREEN);
-	Format(szMOSSGREEN, 12, "%c", MOSSGREEN);
+	Format(szLIGHTGREEN, 12, "%c", LIGHTGREEN);
 	Format(szLIMEGREEN, 12, "%c", LIMEGREEN);
 	Format(szRED, 12, "%c", RED);
 	Format(szGRAY, 12, "%c", GRAY);
@@ -2781,11 +2791,6 @@ public int Native_EmulateStopButtonPress(Handle plugin, int numParams)
 	CL_OnEndTimerPress(GetNativeCell(1));
 }
 
-public int Native_GetServerRank(Handle plugin, int numParams)
-{
-	return g_PlayerRank[GetNativeCell(1)][0];
-}
-
 public int Native_SafeTeleport(Handle plugin, int numParams)
 {
 	int client = GetNativeCell(1);
@@ -2813,6 +2818,114 @@ public int Native_IsClientVip(Handle plugin, int numParams)
 		return false;
 }
 
+public int Native_GetPlayerRank(Handle plugin, int numParams)
+{
+	int client = GetNativeCell(1);
+	if (IsValidClient(client) && !IsFakeClient(client))
+		return g_PlayerRank[client][0];
+	else
+		return -1;
+}
+
+public int Native_GetPlayerPoints(Handle plugin, int numParams)
+{
+	int client = GetNativeCell(1);
+	if (IsValidClient(client) && !IsFakeClient(client))
+		return g_pr_points[client][0];
+	else
+		return -1;
+}
+
+public int Native_GetPlayerSkillgroup(Handle plugin, int numParams)
+{
+	int client = GetNativeCell(1);
+	char str[256];
+	GetNativeString(2, str, 256);
+	if (IsValidClient(client) && !IsFakeClient(client))
+	{
+		Format(str, sizeof(str), g_pr_chat_coloredrank[client]);
+		SetNativeString(2, str, 256, true);
+	}
+	else
+	{
+		Format(str, sizeof(str), "Unranked");
+		SetNativeString(2, str, 256, true);
+	}
+}
+
+public int Native_GetPlayerNameColored(Handle plugin, int numParams)
+{
+	int client = GetNativeCell(1);
+	char str[256];
+	GetNativeString(2, str, 256);
+	if (IsValidClient(client) && !IsFakeClient(client))
+	{
+		GetClientName(client, str, sizeof(str));
+		Format(str, sizeof(str), "%s%s",  g_pr_namecolour[client], str);
+		SetNativeString(2, str, 256, true);
+	}
+	else
+	{
+		Format(str, sizeof(str), "invalid");
+		SetNativeString(2, str, 256, true);
+	}
+}
+
+public int Native_GetMapData(Handle plugin, int numParams)
+{
+	char name[MAX_NAME_LENGTH], time[64];
+	GetNativeString(1, name, MAX_NAME_LENGTH);
+	GetNativeString(2, time, 64);
+
+	Format(name, sizeof(name), g_szRecordPlayer);
+	Format(time, sizeof(time), g_szRecordMapTime);
+	SetNativeString(1, name, sizeof(name), true);
+	SetNativeString(2, time, sizeof(time), true);
+
+	return g_MapTimesCount;
+}
+
+public int Native_GetPlayerData(Handle plugin, int numParams)
+{
+	int client = GetNativeCell(1);
+	int rank = 99999;
+	if (IsValidClient(client) && !IsFakeClient(client))
+	{
+		char szTime[64], szCountry[16];
+
+		GetNativeString(1, szTime, 64);
+		rank = GetNativeCell(2);
+		GetNativeString(3, szCountry, 16);
+
+		if (g_fPersonalRecord[client] > 0.0)
+			Format(szTime, 64, "%s", g_szPersonalRecord[client]);
+		else
+			Format(szTime, 64, "N/A");
+		
+		Format(szCountry, sizeof(szCountry), g_szCountryCode[client]);
+
+		rank = g_MapRank[client];
+
+		SetNativeString(2, szTime, sizeof(szTime), true);
+		SetNativeString(4, szCountry, sizeof(szCountry), true);
+	}
+
+	return rank;
+}
+
+public int Native_GetMapTier(Handle plugin, int numParams)
+{
+	return g_iMapTier;
+}
+
+public int Native_GetMapStages(Handle plugin, int numParams)
+{
+	int stages = 0;
+	if (g_bhasStages)
+		stages = g_mapZonesTypeCount[0][3] + 1;
+	return stages;
+}
+
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
 	RegPluginLibrary("surftimer");
@@ -2821,7 +2934,14 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("surftimer_EmulateStartButtonPress", Native_EmulateStartButtonPress);
 	CreateNative("surftimer_EmulateStopButtonPress", Native_EmulateStopButtonPress);
 	CreateNative("surftimer_GetCurrentTime", Native_GetCurrentTime);
-	CreateNative("surftimer_GetServerRank", Native_GetServerRank);
+	CreateNative("surftimer_GetPlayerRank", Native_GetPlayerRank);
+	CreateNative("surftimer_GetPlayerPoints", Native_GetPlayerPoints);
+	CreateNative("surftimer_GetPlayerSkillgroup", Native_GetPlayerSkillgroup);
+	CreateNative("surftimer_GetPlayerNameColored", Native_GetPlayerNameColored);
+	CreateNative("surftimer_GetMapData", Native_GetMapData);
+	CreateNative("surftimer_GetPlayerData", Native_GetPlayerData);
+	CreateNative("surftimer_GetMapTier", Native_GetMapTier);
+	CreateNative("surftimer_GetMapStages", Native_GetMapStages);
 	CreateNative("surftimer_SafeTeleport", Native_SafeTeleport);
 	CreateNative("surftimer_IsClientVip", Native_IsClientVip);
 	MarkNativeAsOptional("Store_GetClientCredits");

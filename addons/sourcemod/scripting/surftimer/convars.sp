@@ -85,6 +85,7 @@ ConVar g_henableChatProcessing = null;							// Is chat processing enabled
 ConVar g_hMultiServerMapcycle = null;							// Use multi server mapcycle
 ConVar g_hDBMapcycle = null;									// use maps from ck_maptier as the servers mapcycle
 ConVar g_hPrestigeRank = null;									// Rank to limit the server
+ConVar g_hPrestigeStyles = null;								// Determines if the rank limit applies to normal style or all styles
 ConVar g_hServerType = null;									// Set server to surf or bhop mode
 ConVar g_hOneJumpLimit = null;									// Only allows players to jump once inside a start or stage zone
 ConVar g_hServerID = null;										// Sets the servers id for cross-server announcements
@@ -108,6 +109,8 @@ char g_szRelativeSoundPathPB[PLATFORM_MAX_PATH];
 ConVar g_hSoundPathWRCP = null;
 char g_szSoundPathWRCP[PLATFORM_MAX_PATH];
 char g_szRelativeSoundPathWRCP[PLATFORM_MAX_PATH];
+ConVar g_hMustPassCheckpoints = null;
+ConVar g_hSlayOnRoundEnd = null;
 
 void CreateConVars()
 {
@@ -303,7 +306,7 @@ void CreateConVars()
 
 	// Prestige Server
 	g_hPrestigeRank = CreateConVar("ck_prestige_rank", "0", "Rank of players who can join the server, 0 to disable");
-
+	g_hPrestigeStyles = CreateConVar("ck_prestige_all_styles", "1", "If enabled, players must be the rank of ck_prestige_rank in ANY style");
 	// Surf / Bhop
 	g_hServerType = CreateConVar("ck_server_type", "0", "Change the timer to function for Surf or Bhop, 0 = surf, 1 = bhop (Note: Currently does nothing)");
 	HookConVarChange(g_hServerType, OnSettingChanged);
@@ -318,11 +321,11 @@ void CreateConVars()
 	HookConVarChange(g_hServerID, OnSettingChanged);
 
 	// Discord
-	g_hRecordAnnounceDiscord = CreateConVar("ck_announce_records_discord", "Web hook link to announce records to discord, keep empty to disable");
+	g_hRecordAnnounceDiscord = CreateConVar("ck_announce_records_discord", "", "Web hook link to announce records to discord, keep empty to disable");
 
-	g_hReportBugsDiscord = CreateConVar("ck_report_discord", "Web hook link to report bugs to discord, keep empty to disable");
+	g_hReportBugsDiscord = CreateConVar("ck_report_discord", "", "Web hook link to report bugs to discord, keep empty to disable");
 
-	g_hCalladminDiscord = CreateConVar("ck_calladmin_discord", "Web hook link to allow players to call admin to discord, keep empty to disable");
+	g_hCalladminDiscord = CreateConVar("ck_calladmin_discord", "", "Web hook link to allow players to call admin to discord, keep empty to disable");
 
 	g_hSidewaysBlockKeys = CreateConVar("ck_sideways_block_keys", "0", "Changes the functionality of sideways, 1 will block keys, 0 will change the clients style to normal if not surfing sideways");
 
@@ -395,7 +398,11 @@ void CreateConVars()
 		Format(g_szSoundPathWRCP, sizeof(g_szSoundPathWRCP), "sound/physics/glass/glass_bottle_break2.wav");
 		Format(g_szRelativeSoundPathWRCP, sizeof(g_szRelativeSoundPathWRCP), "*physics/glass/glass_bottle_break2.wav");
 	}
-	
+
+	g_hMustPassCheckpoints = CreateConVar("ck_enforce_checkpoints", "1", "Sets whether a player must pass all checkpoints to finish their run. Enable/Disable");
+
+	g_hSlayOnRoundEnd = CreateConVar("ck_slay_on_round_end", "1", "If enabled, all players will be slain on round end. If disabled all players timers will be stopped on round end");
+
 	// Server Name
 	g_hHostName = FindConVar("hostname");
 	HookConVarChange(g_hHostName, OnSettingChanged);

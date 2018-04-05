@@ -54,12 +54,70 @@ native Float:surftimer_GetCurrentTime(client);
 native bool:surftimer_IsClientVip(client);
 
 /**
- * Gets the server rank of a client
+ * Gets the rank of a client
  *
  * @param client     Client's id
- * @return           Server rank as an int
+ * @return           Rank as an int / -1 on failure
  */
-native surftimer_GetServerRank(client);
+native surftimer_GetPlayerRank(client);
+
+/**
+ * Gets the clients points
+ *
+ * @param client     Client's id
+ * @return           points as an int / -1 on failure
+ */
+native surftimer_GetPlayerPoints(client);
+
+/**
+ * Gets the skillgroup of a client
+ *
+ * @param client     Client's id
+ * @param str		 String to convert
+ * @return           Skillgroup as a string / Unranked on failure
+ */
+native surftimer_GetPlayerSkillgroup(client, String:str[]);
+
+/**
+ * Gets current map tier
+ * @return          Current map tier
+ */
+native surftimer_GetMapTier();
+
+/**
+ * Gets amount of stages on current map
+ * @return          amount of stages on current map / 0 if linear
+ */
+native surftimer_GetMapStages();
+
+/**
+ * Gets a clients name with colour in string
+ *
+ * @param client     Client's id
+ * @param str		 String to convert
+ * @return           Players name with color as a string / invalid on failure
+ */
+native surftimer_GetPlayerNameColored(client, String:str[]);
+
+/**
+ * Gets current map wr holder and time
+ *
+ * @param name		 String to convert for wr holder name
+ * @param time		 String to convert for wr holder time
+ * @return           total players finished on current map
+ */
+native surftimer_GetMapData(String:name[], String:time[]);
+
+/**
+ * Gets client data
+ *
+ * @param client	 Client's id
+ * @param time		 String to convert for players map time
+ * @param rank		 int to convert to players map rank
+ * @param country	 String to convert for players country
+ * @return           Two strings with wr holder name and time
+ */
+native surftimer_GetPlayerData(client, String:time[], rank, String:country[]);
 
 /**
  * Safely teleports the client. Does not trigger end touches

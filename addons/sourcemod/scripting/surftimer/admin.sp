@@ -43,7 +43,7 @@ public void OnAdminMenuReady(Handle topmenu)
 public int TopMenuHandler2(Handle topmenu, TopMenuAction action, TopMenuObject object_id, int param, char[] buffer, int maxlength)
 {
 	if (action == TopMenuAction_DisplayOption)
-		Format(buffer, maxlength, "surftimer");
+		Format(buffer, maxlength, "SurfTimer");
 
 	else
 		if (action == TopMenuAction_SelectOption)
@@ -57,7 +57,7 @@ public Action Admin_insertMapTier(int client, int args)
 
 	if (!IsPlayerZoner(client))
 	{
-		CPrintToChat(client, "%t", "Admin4", g_szChatPrefix);
+		CPrintToChat(client, "%t", "NoZoneAccess", g_szChatPrefix);
 		return Plugin_Handled;
 	}
 
@@ -82,12 +82,29 @@ public Action Admin_insertMapTier(int client, int args)
 
 public Action Admin_insertSpawnLocation(int client, int args)
 {
-	if (!IsValidClient(client))
+	if (!IsValidClient(client) || !IsPlayerZoner(client))
 		return Plugin_Handled;
 
-	if (!IsPlayerZoner(client))
-		return Plugin_Handled;
+	Menu menu = CreateMenu(ChooseTeleSideHandler);
+	SetMenuTitle(menu, "Choose side for this spawn location");
+	AddMenuItem(menu, "", "Left");
+	AddMenuItem(menu, "", "Right");
+	SetMenuOptionFlags(menu, MENUFLAG_BUTTON_EXIT);
+	DisplayMenu(menu, client, MENU_TIME_FOREVER);
 
+	return Plugin_Handled;
+}
+
+public int ChooseTeleSideHandler(Handle menu, MenuAction action, int param1, int param2)
+{
+	if (action == MenuAction_Select)
+		InsertSpawnLocation(param1, param2);
+	else if (action == MenuAction_End)
+		delete menu;
+}
+
+public void InsertSpawnLocation(int client, int teleside)
+{
 	float SpawnLocation[3];
 	float SpawnAngle[3];
 	float Velocity[3];
@@ -98,37 +115,66 @@ public Action Admin_insertSpawnLocation(int client, int args)
 
 	SpawnLocation[2] += 3.0;
 
-	if (g_bGotSpawnLocation[g_iClientInZone[client][2]][1])
+	if (g_bGotSpawnLocation[g_iClientInZone[client][2]][1][teleside])
 	{
-		db_updateSpawnLocations(SpawnLocation, SpawnAngle, Velocity, g_iClientInZone[client][2]);
+		db_updateSpawnLocations(SpawnLocation, SpawnAngle, Velocity, g_iClientInZone[client][2], teleside);
 		CPrintToChat(client, "%t", "Admin7", g_szChatPrefix);
 	}
 	else
 	{
-		db_insertSpawnLocations(SpawnLocation, SpawnAngle, Velocity, g_iClientInZone[client][2]);
-		CPrintToChat(client, "%t", "Admin8", g_szChatPrefix);
+		db_insertSpawnLocations(SpawnLocation, SpawnAngle, Velocity, g_iClientInZone[client][2], teleside);
+		CPrintToChat(client, "%t", "SpawnAdded", g_szChatPrefix);
 	}
-
-	return Plugin_Handled;
+	
+	CPrintToChat(client, "%f : %f : %f : %i", SpawnLocation, SpawnAngle, Velocity, g_iClientInZone[client][2]);
 }
 
 public Action Admin_deleteSpawnLocation(int client, int args)
 {
-	if (!IsValidClient(client))
+	if (!IsValidClient(client) || !IsPlayerZoner(client))
 		return Plugin_Handled;
 
-	if (!IsPlayerZoner(client))
-		return Plugin_Handled;
-
-	if (g_bGotSpawnLocation[g_iClientInZone[client][2]][1])
+	if (g_bGotSpawnLocation[g_iClientInZone[client][2]][1][0] || g_bGotSpawnLocation[g_iClientInZone[client][2]][1][1])
 	{
-		db_deleteSpawnLocations(g_iClientInZone[client][2]);
-		CPrintToChat(client, "%t", "Admin9", g_szChatPrefix);
+		Menu menu = CreateMenu(DelSpawnLocationHandler);
+		SetMenuTitle(menu, "Choose side of spawn location to delete");
+
+		if (g_bGotSpawnLocation[g_iClientInZone[client][2]][1][0])
+			AddMenuItem(menu, "", "Left");
+		else
+			AddMenuItem(menu, "", "Left", ITEMDRAW_DISABLED);
+		
+		if (g_bGotSpawnLocation[g_iClientInZone[client][2]][1][1])
+			AddMenuItem(menu, "", "Right");
+		else
+			AddMenuItem(menu, "", "Right", ITEMDRAW_DISABLED);
+
+		SetMenuOptionFlags(menu, MENUFLAG_BUTTON_EXIT);
+		DisplayMenu(menu, client, MENU_TIME_FOREVER);
 	}
 	else
 		CPrintToChat(client, "%t", "Admin9", g_szChatPrefix);
 
 	return Plugin_Handled;
+}
+
+public int DelSpawnLocationHandler(Handle menu, MenuAction action, int param1, int param2)
+{
+	if (action == MenuAction_Select)
+		DelSpawnLocation(param1, param2);
+	else if (action == MenuAction_End)
+		delete menu;
+}
+
+public void DelSpawnLocation(int client, int teleside)
+{
+	if (g_bGotSpawnLocation[g_iClientInZone[client][2]][1][teleside])
+	{
+		db_deleteSpawnLocations(g_iClientInZone[client][2], teleside);
+		CPrintToChat(client, "%t", "Admin8", g_szChatPrefix);
+	}
+	else
+		CPrintToChat(client, "%t", "Admin9", g_szChatPrefix);
 }
 
 public Action Admin_ClearAssists(int client, int args)

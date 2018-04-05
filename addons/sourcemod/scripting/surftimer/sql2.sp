@@ -585,7 +585,7 @@ public void db_viewCustomTitles(int client, char[] szSteamID)
 	Handle pack = CreateDataPack();
 	WritePackCell(pack, client);
 	WritePackString(pack, szSteamID);
-	Format(szQuery, 728, "SELECT `title`, `namecolour`, `textcolour`, `inuse`, `vip`, `zoner`, `joinmsg`, `pbsound`, `topsound`, `wrsound` FROM `ck_vipadmins` WHERE `steamid` = '%s'", szSteamID);
+	Format(szQuery, 728, "SELECT `title`, `namecolour`, `textcolour`, `inuse`, `vip`, `zoner`, `joinmsg` FROM `ck_vipadmins` WHERE `steamid` = '%s'", szSteamID);
 	SQL_TQuery(g_hDb, SQL_viewCustomTitlesCallback, szQuery, pack, DBPrio_Low);
 }
 
@@ -624,6 +624,7 @@ public void SQL_viewCustomTitlesCallback(Handle owner, Handle hndl, const char[]
 		Format(szTitle, 1024, "%s", g_szCustomTitleColoured[client]);
 		parseColorsFromString(szTitle, 1024);
 		Format(g_pr_rankname[client], 1024, "%s", szTitle);
+		Format(g_pr_rankname_style[client], 1024, "%s", szTitle);
 		Format(g_szCustomTitle[client], 1024, "%s", szTitle);
 
 		if (!SQL_IsFieldNull(hndl, 6) && IsPlayerVip(client, true, false))
@@ -829,8 +830,8 @@ public void SQL_UpdatePlayerColoursCallback(Handle owner, Handle hndl, const cha
 // WR Announcements
 public void db_selectAnnouncements()
 {
-	char szQuery[128];
-	Format(szQuery, 128, "SELECT id FROM ck_announcements WHERE server != '%s' AND id > %d", g_sServerName, g_iLastID);
+	char szQuery[1024];
+	Format(szQuery, 1024, "SELECT id FROM ck_announcements WHERE server != '%s' AND id > %d", g_sServerName, g_iLastID);
 	SQL_TQuery(g_hDb, SQL_SelectAnnouncementsCallback, szQuery, 1, DBPrio_Low);
 }
 
