@@ -742,13 +742,24 @@ public void CL_OnStartWrcpTimerPress(int client)
 		int zGroup = g_iClientInZone[client][2];
 		if (zGroup == 0)
 		{
-			g_fStartWrcpTime[client] = GetGameTime();
-			// g_fStartWrcpTime[client] = 0.0;
-			g_fCurrentWrcpRunTime[client] = 0.0;
-			g_bWrcpTimeractivated[client] = true;
-			g_bNotTeleporting[client] = true;
-			g_WrcpStage[client] = g_Stage[0][client];
-			Stage_StartRecording(client);
+			float g_szVelocity[3], currentspeed;
+			GetEntPropVector(client, Prop_Data, "m_vecVelocity", g_szVelocity);
+			currentspeed = SquareRoot(Pow(g_szVelocity[0],2.0)+Pow(g_szVelocity[1],2.0));
+		
+			if(g_hStagePreSpeed.FloatValue > 0.0 && g_hStagePreSpeed.FloatValue < currentspeed)
+			{
+				CPrintToChat(client, "%t", "TooMuchStageSpeed", g_szChatPrefix);
+			}
+			else
+			{
+				g_fStartWrcpTime[client] = GetGameTime();
+				// g_fStartWrcpTime[client] = 0.0;
+				g_fCurrentWrcpRunTime[client] = 0.0;
+				g_bWrcpTimeractivated[client] = true;
+				g_bNotTeleporting[client] = true;
+				g_WrcpStage[client] = g_Stage[0][client];
+				Stage_StartRecording(client);
+			}
 		}
 	}
 }
