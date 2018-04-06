@@ -1197,7 +1197,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 				}
 			}
 		}
-
+		
 		float speed, origin[3], ang[3];
 		GetClientAbsOrigin(client, origin);
 		GetClientEyeAngles(client, ang);
