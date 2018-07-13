@@ -102,6 +102,9 @@
 #define VOTE_NO "###no###"
 #define VOTE_YES "###yes###"
 
+#define VOTELIMIT 3
+int gI_VoteLimit;
+
 // Checkpoint Definitions
 // Maximum amount of checkpoints in a map
 #define CPLIMIT 37
@@ -1636,6 +1639,8 @@ public void OnEntityCreated(int entity, const char[] classname)
 
 public void OnMapStart()
 {
+	gI_VoteLimit = 0;
+
 	CreateTimer(30.0, EnableJoinMsgs, INVALID_HANDLE, TIMER_FLAG_NO_MAPCHANGE);
 
 	// Get mapname
