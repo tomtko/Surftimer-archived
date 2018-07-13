@@ -417,33 +417,38 @@ public Action Command_VoteExtend(int client, int args)
 
 public void VoteExtend(int client)
 {
-	int timeleft;
-	GetMapTimeLeft(timeleft);
+    int timeleft;
+    GetMapTimeLeft(timeleft);
 
-	if (timeleft > 300)
-	{
-		CPrintToChat(client, "%t", "Commands4", g_szChatPrefix);
-		return;
-	}
+    if (timeleft > 300)
+    {
+        CPrintToChat(client, "%t", "Commands4", g_szChatPrefix);
+        return;
+    }
 
-	if (IsVoteInProgress())
-	{
-		CPrintToChat(client, "%t", "Commands5", g_szChatPrefix);
-		return;
-	}
+    if (IsVoteInProgress())
+    {
+        CPrintToChat(client, "%t", "Commands5", g_szChatPrefix);
+        return;
+    }
+    
+    if (gI_VoteLimit >= VOTELIMIT)
+        return;    
+    
+    ++gI_VoteLimit;
+    
+    char szPlayerName[MAX_NAME_LENGTH];
+    GetClientName(client, szPlayerName, MAX_NAME_LENGTH);
 
-	char szPlayerName[MAX_NAME_LENGTH];
-	GetClientName(client, szPlayerName, MAX_NAME_LENGTH);
+    Menu menu = CreateMenu(Handle_VoteMenuExtend);
+    SetMenuTitle(menu, "Extend the map by 10 minutes?");
+    AddMenuItem(menu, "###yes###", "Yes");
+    AddMenuItem(menu, "###no###", "No");
+    SetMenuExitButton(menu, false);
+    VoteMenuToAll(menu, 20);
+    CPrintToChatAll("%t", "VoteStartedBy", g_szChatPrefix, szPlayerName);
 
-	Menu menu = CreateMenu(Handle_VoteMenuExtend);
-	SetMenuTitle(menu, "Extend the map by 10 minutes?");
-	AddMenuItem(menu, "###yes###", "Yes");
-	AddMenuItem(menu, "###no###", "No");
-	SetMenuExitButton(menu, false);
-	VoteMenuToAll(menu, 20);
-	CPrintToChatAll("%t", "VoteStartedBy", g_szChatPrefix, szPlayerName);
-
-	return;
+    return;
 }
 
 public Action Command_normalMode(int client, int args)
