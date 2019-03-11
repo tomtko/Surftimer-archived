@@ -28,9 +28,6 @@ If you wish to upgrade from a different fork of cksurf you may run the upgrade s
 * Import the ck_zones.sql file if you want to use my pre-made zones
 * Import the ck_maptier.sql file if you want to use my pre-made tiers
 
-## Stripper
-* ~I have uploaded my stripper files <a href="https://github.com/fluffyst/skillsurf-csgo">here</a>~ I have temporarily deleted this repo as I'm restarting my community, don't want the competiton to copy my server! Feel free to PM me for a download link though.
-
 ## Other Plugins
 https://github.com/fluffyst/ckSurf-mapchooser
 
