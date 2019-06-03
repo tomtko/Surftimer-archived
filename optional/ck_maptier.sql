@@ -5,7 +5,8 @@ CREATE TABLE `ck_maptier` (
   `tier` int(12) NOT NULL,
   `maxvelocity` float NOT NULL DEFAULT '3500',
   `announcerecord` int(11) NOT NULL DEFAULT '0',
-  `gravityfix` int(11) NOT NULL DEFAULT '1'
+  `gravityfix` int(11) NOT NULL DEFAULT '1',
+  `ranked` int(11) NOT NULL DEFAULT `1`,
 ) DEFAULT CHARSET=utf8mb4;
 
 --
