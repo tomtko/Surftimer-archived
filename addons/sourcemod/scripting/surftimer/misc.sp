@@ -4368,7 +4368,7 @@ public void totalTimeForHumans(int unix, char[] buffer, int size)
 {
 	int years, months, days, hours, mins, secs;
 	int secondsPerDay = 86400;
-  	int secondsSinceMidnight = timestamp % secondsPerDay;
+  	int secondsSinceMidnight = unix % secondsPerDay;
 	if (unix > 31535999)
 	{
 		years = unix / 60 / 60 / 24 / 365;
