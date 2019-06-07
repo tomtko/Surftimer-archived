@@ -4367,49 +4367,51 @@ public void diffForHumans(int unix, char[] buffer, int size, int type)
 public void totalTimeForHumans(int unix, char[] buffer, int size)
 {
 	int years, months, days, hours, mins, secs;
+	int secondsPerDay = 86400;
+  	int secondsSinceMidnight = unix % secondsPerDay;
 	if (unix > 31535999)
 	{
 		years = unix / 60 / 60 / 24 / 365;
 		months = unix / 60 / 60 / 24 / 30;
 		days = unix / 60 / 60 / 24;
-		hours = unix / 3600 % 60;
-		mins = unix / 60 % 60;
-		secs = unix % 60;
+		hours = secondsSinceMidnight / 3600;
+		mins = secondsSinceMidnight % 3600 / 60;
+		secs = secondsSinceMidnight % 60;
 		Format(buffer, size, "%d year%s %d month%s %d day%s %d hour%s %d minute%s %d second%s", years, years==1?"":"s", months, months==1?"":"s", days, days==1?"":"s", hours, hours==1?"":"s", mins, mins==1?"":"s", secs, secs==1?"":"s");
 	}
 	if (unix > 2591999)
 	{
 		months = unix / 60 / 60 / 24 / 30;
 		days = unix / 60 / 60 / 24;
-		hours = unix / 3600 % 60;
-		mins = unix / 60 % 60;
-		secs = unix % 60;
+		hours = secondsSinceMidnight / 3600;
+		mins = secondsSinceMidnight % 3600 / 60;
+		secs = secondsSinceMidnight % 60;
 		Format(buffer, size, "%d month%s %d day%s %d hour%s %d minute%s %d second%s", months, months==1?"":"s", days, days==1?"":"s", hours, hours==1?"":"s", mins, mins==1?"":"s", secs, secs==1?"":"s");
 	}
 	if (unix > 86399)
 	{
 		days = unix / 60 / 60 / 24;
-		hours = unix / 3600 % 60;
-		mins = unix / 60 % 60;
-		secs = unix % 60;
+		hours = secondsSinceMidnight / 3600;
+		mins = secondsSinceMidnight % 3600 / 60;
+		secs = secondsSinceMidnight % 60;
 		Format(buffer, size, "%d day%s %d hour%s %d minute%s %d second%s", days, days==1?"":"s", hours, hours==1?"":"s", mins, mins==1?"":"s", secs, secs==1?"":"s");
 	}
 	else if (unix > 3599)
 	{
-		hours = unix / 3600 % 60;
-		mins = unix / 60 % 60;
-		secs = unix % 60;
+		hours = secondsSinceMidnight / 3600;
+		mins = secondsSinceMidnight % 3600 / 60;
+		secs = secondsSinceMidnight % 60;
 		Format(buffer, size, "%d hour%s %d minute%s %d second%s", hours, hours==1?"":"s", mins, mins==1?"":"s", secs, secs==1?"":"s");
 	}
 	else if (unix > 59)
 	{
-		mins = unix / 60 % 60;
-		secs = unix % 60;
+		mins = secondsSinceMidnight % 3600 / 60;
+		secs = secondsSinceMidnight % 60;
 		Format(buffer, size, "%d minute%s %d second%s", mins, mins==1?"":"s", secs, secs==1?"":"s");
 	}
 	else
 	{
-		secs = unix;
+		secs = secondsSinceMidnight % 60;
 		Format(buffer, size, "%d second%s", secs, secs==1?"":"s");
 	}
 }
