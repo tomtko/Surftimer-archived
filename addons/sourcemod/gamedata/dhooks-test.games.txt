@@ -29,18 +29,18 @@
 			}
 			"GetMaxs"
 			{
-				"windows"	"338"
-				"linux"		"339"
+				"windows"	"339"
+				"linux"		"340"
 			}
 			"CanUse"
 			{
-				"windows"	"259"
-				"linux"		"260"
+				"windows"	"260"
+				"linux"		"261"
 			}
 			"CanHaveAmmo"
 			{
-				"windows"	"97"
-				"linux"		"97"
+				"windows"	"98"
+				"linux"		"98"
 			}
 			"SetModel"
 			{
@@ -49,13 +49,13 @@
 			}
 			"GetMaxPlayerSpeed"
 			{
-				"windows"	"437"
-				"linux"		"438"
+				"windows"	"438"
+				"linux"		"439"
 			}
 			"GiveAmmo"
 			{
-				"windows"	"251"
-				"linux"		"252"
+				"windows"	"252"
+				"linux"		"253"
 			}
 			"OnTakeDamage"
 			{
