@@ -2958,7 +2958,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("surftimer_IsClientVip", Native_IsClientVip);
 	MarkNativeAsOptional("Store_GetClientCredits");
 	MarkNativeAsOptional("Store_SetClientCredits");
-	g_bLateLoaded = late;
+/*	g_bLateLoaded = late;*/
 	return APLRes_Success;
 }
 
