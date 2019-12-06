@@ -4,3 +4,4 @@ addons/sourcemod/scripting/surftimer-api.sp
 addons/sourcemod/scripting/surftimer-api.smx
 addons/sourcemod/scripting/compile.dat
 addons/sourcemod/scripting/include/compile.dat
+addons/sourcemod/scripting/compiled/*
