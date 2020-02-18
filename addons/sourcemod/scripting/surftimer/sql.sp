@@ -23,8 +23,11 @@ public void db_setupDatabase()
 
 	if (strcmp(szIdent, "mysql", false) == 0)
 	{
-		// https://github.com/nikooo777/ckSurf/pull/58
-		SQL_FastQuery(g_hDb, "SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));");
+		// Remove incompatability
+		SQL_FastQuery(g_hDb, "SET sql_mode=(SELECT REPLACE(@@sql_mode,'TRADITIONAL',''));");
+		
+		// for unsupported hosts set session instead using SET @@SESSION.sql_mode= '';
+	
 		g_DbType = MYSQL;
 	}
 	else if (strcmp(szIdent, "sqlite", false) == 0)
@@ -40,8 +43,8 @@ public void db_setupDatabase()
 
 	// If updating from a previous version
 	SQL_LockDatabase(g_hDb);
-	SQL_FastQuery(g_hDb, "SET NAMES 'utf8'");
-	SQL_FastQuery(g_hDb, "SET name 'utf8'");
+	SQL_FastQuery(g_hDb, "SET NAMES 'utf8mb4_unicode_ci'");
+	SQL_FastQuery(g_hDb, "SET name 'utf8mb4_unicode_ci'");
 
 
 	// Check if tables need to be Created or database needs to be upgraded
