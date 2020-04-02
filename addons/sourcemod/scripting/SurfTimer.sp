@@ -1701,7 +1701,7 @@ public void OnMapStart()
 	CreateTimer(1.0, CKTimer2, INVALID_HANDLE, TIMER_FLAG_NO_MAPCHANGE | TIMER_REPEAT);
 	CreateTimer(60.0, AttackTimer, INVALID_HANDLE, TIMER_FLAG_NO_MAPCHANGE | TIMER_REPEAT);
 	CreateTimer(600.0, PlayerRanksTimer, INVALID_HANDLE, TIMER_FLAG_NO_MAPCHANGE | TIMER_REPEAT);
-	g_hZoneTimer = CreateTimer(GetConVarFloat(g_hChecker), BeamBoxAll, _, TIMER_REPEAT);
+	g_hZoneTimer = CreateTimer(GetConVarFloat(g_hChecker), BeamBoxAll, _, TIMER_FLAG_NO_MAPCHANGE | TIMER_REPEAT);
 
 	// AutoBhop
 	if (GetConVarBool(g_hAutoBhopConVar))
@@ -2663,7 +2663,7 @@ public void OnSettingChanged(Handle convar, const char[] oldValue, const char[] 
 		g_hZoneTimer = INVALID_HANDLE;
 	}
 
-	g_hZoneTimer = CreateTimer(GetConVarFloat(g_hChecker), BeamBoxAll, _, TIMER_REPEAT);
+	g_hZoneTimer = CreateTimer(GetConVarFloat(g_hChecker), BeamBoxAll, _, TIMER_FLAG_NO_MAPCHANGE | TIMER_REPEAT);
 }
 
 public void OnPluginStart()
@@ -2938,8 +2938,8 @@ public int Native_GetMapStages(Handle plugin, int numParams)
 	return stages;
 }
 
-public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
-{
+public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max){
+
 	RegPluginLibrary("surftimer");
 	CreateNative("surftimer_GetTimerStatus", Native_GetTimerStatus);
 	CreateNative("surftimer_StopTimer", Native_StopTimer);
@@ -2958,7 +2958,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("surftimer_IsClientVip", Native_IsClientVip);
 	MarkNativeAsOptional("Store_GetClientCredits");
 	MarkNativeAsOptional("Store_SetClientCredits");
-	g_bLateLoaded = late;
+/*	g_bLateLoaded = late;*/
 	return APLRes_Success;
 }
 
