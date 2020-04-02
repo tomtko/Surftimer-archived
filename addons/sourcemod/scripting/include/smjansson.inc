@@ -10,8 +10,8 @@
  * The JSON specification (RFC 4627) defines the following data types:
  * object, array, string, number, boolean, and null.
  * JSON types are used dynamically; arrays and objects can hold any
- * other data type, including themselves. For this reason, Janssonï¿½s
- * type system is also dynamic in nature. Thereï¿½s one Handle type to
+ * other data type, including themselves. For this reason, Jansson’s
+ * type system is also dynamic in nature. There’s one Handle type to
  * represent all JSON values, and the referenced structure knows the
  * type of the JSON value it holds.
  *
@@ -55,16 +55,16 @@ native json_type:json_typeof(Handle:hObj);
 #define json_is_boolean(%1)			( json_typeof(%1) == JSON_TRUE || json_typeof(%1) == JSON_FALSE )
 
 /**
- * Saves json_type as a String in out
+ * Saves json_type as a String jannson_in out
  *
- * @param in                json_type value to convert to string
+ * @param jannson_in        json_type value to convert to string
  * @param out               Buffer to store the json_type value
  * @param maxlength         Maximum length of string buffer.
  *
  * @return                  False if the type does not exist.
  */
-stock bool:Stringify_json_type(json_type:type, String:out[], maxlength) {
-	switch(type) {
+stock bool:Stringify_json_type(json_type:jannson_in, String:out[], maxlength) {
+	switch(jannson_in) {
 		case JSON_OBJECT:		strcopy(out, maxlength, "Object");
 		case JSON_ARRAY:		strcopy(out, maxlength, "Array");
 		case JSON_STRING:		strcopy(out, maxlength, "String");
@@ -577,7 +577,7 @@ native Handle:json_null();
  * Strings
  *
  * Jansson uses UTF-8 as the character encoding. All JSON strings must
- * be valid UTF-8 (or ASCII, as itï¿½s a subset of UTF-8). Normal null
+ * be valid UTF-8 (or ASCII, as it’s a subset of UTF-8). Normal null
  * terminated C strings are used, so JSON strings may not contain
  * embedded null characters.
  *
@@ -1002,7 +1002,7 @@ stock json_object_get_string(Handle:hObj, const String:sKey[], String:sBuffer[],
 /**
  * Pack String Rules
  *
- * Hereï¿½s the full list of format characters:
+ * Here’s the full list of format characters:
  *  n    Output a JSON null value. No argument is consumed.
  *  s    Output a JSON string, consuming one argument.
  *  b    Output a JSON bool value, consuming one argument.
