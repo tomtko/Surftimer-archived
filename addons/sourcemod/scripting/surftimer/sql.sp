@@ -40,8 +40,8 @@ public void db_setupDatabase()
 
 	// If updating from a previous version
 	SQL_LockDatabase(g_hDb);
-	SQL_FastQuery(g_hDb, "SET NAMES 'utf8'");
-	SQL_FastQuery(g_hDb, "SET name 'utf8'");
+	SQL_FastQuery(g_hDb, "SET NAMES 'utf8mb4'");
+	SQL_FastQuery(g_hDb, "SET name 'utf8mb4'");
 
 
 	// Check if tables need to be Created or database needs to be upgraded
@@ -656,7 +656,7 @@ public void sql_CalcuatePlayerRankCallback(Handle owner, Handle hndl, const char
 
 		// Next up, calculate bonus points:
 		char szQuery[512];
-		Format(szQuery, 512, "SELECT mapname, (SELECT count(1)+1 FROM ck_bonus b WHERE a.mapname=b.mapname AND a.runtime > b.runtime AND a.zonegroup = b.zonegroup AND b.style = %i) AS rank, (SELECT count(1) FROM ck_bonus b WHERE a.mapname = b.mapname AND a.zonegroup = b.zonegroup AND b.style = %i) as total FROM ck_bonus a WHERE steamid = '%s' AND style = %i;", style, style, szSteamId, style);
+		Format(szQuery, 512, "SELECT mapname, (SELECT count(1)+1 FROM ck_bonus b WHERE a.mapname=b.mapname AND a.runtime > b.runtime AND a.zonegroup = b.zonegroup AND b.style = %i) AS `rank`, (SELECT count(1) FROM ck_bonus b WHERE a.mapname = b.mapname AND a.zonegroup = b.zonegroup AND b.style = %i) as total FROM ck_bonus a WHERE steamid = '%s' AND style = %i;", style, style, szSteamId, style);
 		SQL_TQuery(g_hDb, sql_CountFinishedBonusCallback, szQuery, pack, DBPrio_Low);
 	}
 	else
@@ -857,7 +857,7 @@ public void sql_CountFinishedBonusCallback(Handle owner, Handle hndl, const char
 	g_WRs[client][style][1] = wrbs;
 	// Next up: Points from stages
 	char szQuery[512];
-	Format(szQuery, 512, "SELECT mapname, stage, (select count(1)+1 from ck_wrcps b where a.mapname=b.mapname and a.runtimepro > b.runtimepro and a.style = b.style and a.stage = b.stage) AS rank FROM ck_wrcps a where steamid = '%s' AND style = %i;", szSteamId, style);
+	Format(szQuery, 512, "SELECT mapname, stage, (select count(1)+1 from ck_wrcps b where a.mapname=b.mapname and a.runtimepro > b.runtimepro and a.style = b.style and a.stage = b.stage) AS `rank` FROM ck_wrcps a where steamid = '%s' AND style = %i;", szSteamId, style);
 	SQL_TQuery(g_hDb, sql_CountFinishedStagesCallback, szQuery, pack, DBPrio_Low);
 }
 
@@ -922,7 +922,7 @@ public void sql_CountFinishedStagesCallback(Handle owner, Handle hndl, const cha
 
 	// Next up: Points from maps
 	char szQuery[512];
-	Format(szQuery, 512, "SELECT mapname, (select count(1)+1 from ck_playertimes b where a.mapname=b.mapname and a.runtimepro > b.runtimepro AND b.style = %i) AS rank, (SELECT count(1) FROM ck_playertimes b WHERE a.mapname = b.mapname AND b.style = %i) as total, (SELECT tier FROM `ck_maptier` b WHERE a.mapname = b.mapname) as tier FROM ck_playertimes a where steamid = '%s' AND style = %i;", style, style, szSteamId, style);
+	Format(szQuery, 512, "SELECT mapname, (select count(1)+1 from ck_playertimes b where a.mapname=b.mapname and a.runtimepro > b.runtimepro AND b.style = %i) AS `rank`, (SELECT count(1) FROM ck_playertimes b WHERE a.mapname = b.mapname AND b.style = %i) as total, (SELECT tier FROM `ck_maptier` b WHERE a.mapname = b.mapname) as tier FROM ck_playertimes a where steamid = '%s' AND style = %i;", style, style, szSteamId, style);
 	SQL_TQuery(g_hDb, sql_CountFinishedMapsCallback, szQuery, pack, DBPrio_Low);
 }
 
@@ -3762,7 +3762,7 @@ public void SQL_selectBonusTotalCountCallback(Handle owner, Handle hndl, const c
 	return;
 }
 
-public void db_insertBonus(int client, char szSteamId[32], char szUName[32], float FinalTime, int zoneGrp)
+public void db_insertBonus(int client, char szSteamId[32], char szUName[128], float FinalTime, int zoneGrp)
 {
 	char szQuery[1024];
 	char szName[MAX_NAME_LENGTH * 2 + 1];
@@ -3792,7 +3792,7 @@ public void SQL_insertBonusCallback(Handle owner, Handle hndl, const char[] erro
 	CalculatePlayerRank(client, 0);
 }
 
-public void db_updateBonus(int client, char szSteamId[32], char szUName[32], float FinalTime, int zoneGrp)
+public void db_updateBonus(int client, char szSteamId[32], char szUName[128], float FinalTime, int zoneGrp)
 {
 	char szQuery[1024];
 	char szName[MAX_NAME_LENGTH * 2 + 1];
@@ -4524,9 +4524,9 @@ public void SQL_selectMapZonesCallback(Handle owner, Handle hndl, const char[] e
 			Array_Copy(g_mapZones[g_mapZonesCount][PointA], posA, 3);
 			Array_Copy(g_mapZones[g_mapZonesCount][PointB], posB, 3);
 			AddVectors(posA, posB, result);
-			g_mapZones[g_mapZonesCount][CenterPoint][0] = FloatDiv(result[0], 2.0);
-			g_mapZones[g_mapZonesCount][CenterPoint][1] = FloatDiv(result[1], 2.0);
-			g_mapZones[g_mapZonesCount][CenterPoint][2] = FloatDiv(result[2], 2.0);
+			g_mapZones[g_mapZonesCount][CenterPoint][0] = result[0]/ 2.0;
+			g_mapZones[g_mapZonesCount][CenterPoint][1] = result[1]/ 2.0;
+			g_mapZones[g_mapZonesCount][CenterPoint][2] = result[2]/ 2.0;
 
 			for (int i = 0; i < 3; i++)
 			{
@@ -4813,7 +4813,7 @@ public int LatestRecordsMenuHandler(Handle menu, MenuAction action, int param1, 
 		CloseHandle(menu);
 }
 
-public void db_InsertLatestRecords(char szSteamID[32], char szName[32], float FinalTime)
+public void db_InsertLatestRecords(char szSteamID[32], char szName[128], float FinalTime)
 {
 	char szQuery[512];
 	Format(szQuery, 512, sql_insertLatestRecords, szSteamID, szName, FinalTime, g_szMapName);
@@ -6530,7 +6530,7 @@ public int StageTopMenuHandler(Menu menu, MenuAction action, int client, int ite
 public void db_viewStageRecords()
 {
 	char szQuery[512];
-	Format(szQuery, 512, "SELECT name, MIN(runtimepro), stage, style FROM ck_wrcps WHERE mapname = '%s' GROUP BY stage, style;", g_szMapName);
+	Format(szQuery, 512, "SELECT name, MIN(runtimepro), stage, style FROM ck_wrcps WHERE mapname = '%s' GROUP BY name, stage, style;", g_szMapName);
 	SQL_TQuery(g_hDb, sql_viewStageRecordsCallback, szQuery, 0, DBPrio_Low);
 }
 
@@ -6931,7 +6931,7 @@ public void db_selectStyleMapTopSurfers(int client, char mapname[128], int style
 }
 
 // Styles for bonuses
-public void db_insertBonusStyle(int client, char szSteamId[32], char szUName[32], float FinalTime, int zoneGrp, int style)
+public void db_insertBonusStyle(int client, char szSteamId[32], char szUName[128], float FinalTime, int zoneGrp, int style)
 {
 	char szQuery[1024];
 	char szName[MAX_NAME_LENGTH * 2 + 1];
@@ -7014,7 +7014,7 @@ public void db_viewMapRankBonusStyleCallback(Handle owner, Handle hndl, const ch
 	}
 }
 
-public void db_updateBonusStyle(int client, char szSteamId[32], char szUName[32], float FinalTime, int zoneGrp, int style)
+public void db_updateBonusStyle(int client, char szSteamId[32], char szUName[128], float FinalTime, int zoneGrp, int style)
 {
 	char szQuery[1024];
 	char szName[MAX_NAME_LENGTH * 2 + 1];
