@@ -1,6 +1,9 @@
 # SurfTimer v2.2 CS:GO
 [Read the changes](CHANGELOG.md)
 
+# THIS FORK IS NO LONGER MAINTAINED, USE THIS FORK INSTEAD
+https://github.com/z4lab/z4lab-surftimer
+
 ## Backstory
 
 This is a CS:GO timer which is heavily modified from ckSurf, the original developer (Jonitaikaponi) has quit working on it, I decided to use this as an opportunity to learn SourcePawn, I didn't want to release this yet as a lot of things are hard coded and very messy, but events occurred and well, here it is.
