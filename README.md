@@ -41,6 +41,6 @@ https://github.com/fluffyst/ckSurf-mapchooser
 
 * Jonitaikaponi - Original ckSurf creator
 * nikooo777 - ckSurf 1.19 Fork
-* <a href="http://steamcommunity.com/id/fluffystko/">fluffys</a>
+* fluffys
 * Jakeey802
 * Grandpa Goose
