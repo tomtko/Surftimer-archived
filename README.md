@@ -2,7 +2,7 @@
 [Read the changes](CHANGELOG.md)
 
 # THIS FORK IS NO LONGER MAINTAINED, USE THIS FORK INSTEAD
-https://github.com/z4lab/z4lab-surftimer
+https://github.com/olokos/SurfTimer-olokos-public
 
 ## Backstory
 
