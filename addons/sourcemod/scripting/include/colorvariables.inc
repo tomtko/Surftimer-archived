@@ -1,19 +1,8 @@
-// https://github.com/nikooo777/ckSurf
-// =====================================
-// ===== ! ! ! W A R N I N G ! ! ! =====
-// =====================================
-// In case you want to update this file from the source below,
-// note that additional color names(aliases) were added for ckSurf.
-// Please don't forget to readd them after updating this file.
-// ===================================== /CK
-
-
 #if defined _colorvariables_included
 	#endinput
 #endif
 #define _colorvariables_included "1.3"
 
-// Source: https://raw.githubusercontent.com/Drixevel/Chat-Processor/master/scripting/include/colorvariables.inc
 // Author: Raska aka KissLick
 // Syntax update: Keith Warren (Drixevel) (redwerewolf on Allied Mods)
 
@@ -508,7 +497,9 @@ stock void CSayText2(int iClient, char[] sMessage, int iAuthor, bool bChat = tru
 
 stock void CAddWhiteSpace(char[] sBuffer, int iSize)
 {
-	if (!IsSource2009()) {
+	EngineVersion iEngineVersion = GetEngineVersion();
+
+	if (!IsSource2009() && !(iEngineVersion == Engine_Left4Dead) && !(iEngineVersion == Engine_Left4Dead2)) {
 		Format(sBuffer, iSize, " %s", sBuffer);
 	}
 }
@@ -975,34 +966,24 @@ stock void AddColors(Handle hTrie)
 		SetTrieString(hTrie, "yellow", "\x07FFFF00");
 		SetTrieString(hTrie, "yellowgreen", "\x079ACD32");
 	} else {
-		SetTrieString(hTrie, "default", "\x01");       // "\x01" "{default}"
-		SetTrieString(hTrie, "teamcolor", "\x03");     // "\x03" "{lightgreen}" "\x03" "{orange}" "\x03" "{blue}" "\x03" "{purple}"
+		SetTrieString(hTrie, "default", "\x01");
+		SetTrieString(hTrie, "teamcolor", "\x03");
 
-		SetTrieString(hTrie, "red", "\x07");           // "\x07" "{red}"
-		SetTrieString(hTrie, "lightred", "\x0F");      // "\x0F" "{lightred}"
-		SetTrieString(hTrie, "darkred", "\x02");       // "\x02" "{darkred}"
-		SetTrieString(hTrie, "bluegrey", "\x0A");      // "\x0A" "{lightblue}"
-		SetTrieString(hTrie, "blue", "\x0B");          // "\x0B" "{steelblue}"
-		SetTrieString(hTrie, "darkblue", "\x0C");      // "\x0C" "{darkblue}"
+		SetTrieString(hTrie, "red", "\x07");
+		SetTrieString(hTrie, "lightred", "\x0F");
+		SetTrieString(hTrie, "darkred", "\x02");
+		SetTrieString(hTrie, "bluegrey", "\x0A");
+		SetTrieString(hTrie, "blue", "\x0B");
+		SetTrieString(hTrie, "darkblue", "\x0C");
 		SetTrieString(hTrie, "purple", "\x03");
-		SetTrieString(hTrie, "orchid", "\x0E");        // "\x0E" "{pink}"
-		SetTrieString(hTrie, "yellow", "\x09");        // "\x09" "{yellow}"
+		SetTrieString(hTrie, "orchid", "\x0E");
+		SetTrieString(hTrie, "yellow", "\x09");
 		SetTrieString(hTrie, "gold", "\x10");
-		SetTrieString(hTrie, "lightgreen", "\x05");    // "\x05" "{olive}"
-		SetTrieString(hTrie, "green", "\x04");         // "\x04" "{green}"
-		SetTrieString(hTrie, "lime", "\x06");          // "\x06" "{lime}"
-		SetTrieString(hTrie, "grey", "\x08");          // "\x08" "{grey}"
+		SetTrieString(hTrie, "lightgreen", "\x05");
+		SetTrieString(hTrie, "green", "\x04");
+		SetTrieString(hTrie, "lime", "\x06");
+		SetTrieString(hTrie, "grey", "\x08");
 		SetTrieString(hTrie, "grey2", "\x0D");
-
-		// Additional color names for ckSurf backwards compatibility
-		SetTrieString(hTrie, "bluegray", "\x0A"); // using bluegrey
-		SetTrieString(hTrie, "gray", "\x08"); // using gray
-		SetTrieString(hTrie, "gray2", "\x0D"); // using gray2
-		SetTrieString(hTrie, "orange", "\x10"); // using gold
-		SetTrieString(hTrie, "steelblue", "\x0D"); // using grey2
-		SetTrieString(hTrie, "pink", "\x0E"); // using orchid
-		SetTrieString(hTrie, "lightblue", "\x0A"); // using bluegrey
-		SetTrieString(hTrie, "olive", "\x05"); // using lightgreen
 	}
 
 	SetTrieString(hTrie, "engine 1", "\x01");
